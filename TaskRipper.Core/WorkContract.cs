@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace TaskRipper.Core
 {
 
-    public class ActionContract : IWorkContract
+    public class WorkContract : IWorkContract
     {
-        public ActionContract(IExecutionSettings executionSettings, string description, int iterations = 1)
+        public WorkContract(IExecutionSettings executionSettings, string description, int iterations = 1)
         {
             ExecutionSettings = executionSettings ?? throw new ArgumentNullException(nameof(executionSettings));
             Description = description ?? throw new ArgumentNullException(nameof(description));
