@@ -1,6 +1,6 @@
 ﻿namespace TaskRipper.Core
 {
-    public interface IWorkerParameters : IDescription, IDateRanged, IIterations
+    public interface IWorkerParameters : IDescription, IIterations
     {
 
     }

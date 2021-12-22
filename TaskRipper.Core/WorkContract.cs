@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TaskRipper.Core
+﻿namespace TaskRipper.Core
 {
 
     public class WorkContract : IWorkContract
     {
+        public WorkContract(string description, int iterations = 1)
+            : this(Core.ExecutionSettings.Default, description, iterations)
+        {
+
+        }
         public WorkContract(IExecutionSettings executionSettings, string description, int iterations = 1)
         {
             ExecutionSettings = executionSettings ?? throw new ArgumentNullException(nameof(executionSettings));
@@ -17,10 +16,6 @@ namespace TaskRipper.Core
         }
 
         public string Description { get; }
-
-        public DateTime StartDate { get; }
-
-        public DateTime EndDate { get; }
 
         public int Iterations { get; }
 
