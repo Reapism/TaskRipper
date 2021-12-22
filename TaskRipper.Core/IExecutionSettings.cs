@@ -14,6 +14,18 @@
 
     public class ExecutionSettings : IExecutionSettings
     {
+        private static IExecutionSettings defaultInstance;
+        public static IExecutionSettings Default
+        {
+            get 
+            {
+                if (defaultInstance is null)
+                    defaultInstance = new ExecutionSettings(new ExecutionEnvironment());
+
+                return defaultInstance;
+            }
+        }
+
         public ExecutionSettings(IExecutionEnvironment executionEnvironment)
         {
             ExecutionEnvironment = executionEnvironment;
