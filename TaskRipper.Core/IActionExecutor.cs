@@ -1,49 +1,58 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TaskRipper.Core
+﻿namespace TaskRipper.Core
 {
-
     public interface IActionExecutor
     {
-        IWorkerResult Execute(IWorkContract actionContract, Action action, CancellationToken cancellationToken);
-    }
-    public interface IActionExecutorAsync
-    {
-        Task<IWorkerResult> ExecuteAsync(IWorkContract actionContract, Action action, CancellationToken cancellationToken);
+        //IWorkerResult Execute(IWorkContract actionContract, Action action, CancellationToken cancellationToken);
+        Task<IWorkerResult> ExecuteAsync(IWorkContract workContract, Action action, CancellationToken cancellationToken);
     }
 
-    public class ActionExecutorAsync : IActionExecutorAsync
+    public class ActionExecutor : IActionExecutor
     {
         private readonly IWorkBalancer workBalancer;
-
-        public ActionExecutorAsync(IWorkBalancer workBalancer)
+        private static IActionExecutor defaultInstance;
+        public ActionExecutor(IWorkBalancer workBalancer)
         {
             this.workBalancer = workBalancer;
         }
-        public async Task<IWorkerResult> ExecuteAsync(IWorkContract actionContract, Action action, CancellationToken cancellationToken)
+
+        public static IActionExecutor Default
         {
-            return await ExecuteAsyncInternal(actionContract, action, cancellationToken);
+            get
+            {
+                if (defaultInstance is null)
+                    defaultInstance = new ActionExecutor(new WorkBalancer());
+
+                return defaultInstance;
+            }
         }
 
-        private async Task<IWorkerResult> ExecuteAsyncInternal(IWorkContract actionContract, Action action, CancellationToken cancellationToken)
+        public async Task<IWorkerResult> ExecuteAsync(IWorkContract workContract, Action action, CancellationToken cancellationToken)
         {
-            if (actionContract is null)
-            {
-                await Task.FromException(new ArgumentNullException(nameof(actionContract)));
-            }
-            // 10,000 ITERATIONS
-            // 10 THREADS
-            // HOW MANY ITERATIONS PER THREAD?
+            return await ExecuteAsyncInternal(workContract, action, cancellationToken);
+        }
 
-            var iterationsByThread = workBalancer.Balance(actionContract.Iterations, actionContract.ExecutionSettings.ExecutionEnvironment.ThreadCount);
-            var tasks = GetTasks(action, iterationsByThread.Count, cancellationToken);
-            
+        private async Task<IWorkerResult> ExecuteAsyncInternal(IWorkContract workContract, Action action, CancellationToken cancellationToken)
+        {
+            if (workContract is null)
+            {
+                throw new ArgumentNullException(nameof(workContract));
+            }
+            if (action is null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            var startDate = DateTime.Now;
+
+            var iterationsByThread = workBalancer.Balance(workContract.Iterations, workContract.ExecutionSettings.ExecutionEnvironment.ThreadCount);
+            var tasks = GetTasks(action, iterationsByThread, cancellationToken);
+
             await ExecuteTasks(tasks);
-            return await Task.FromResult(new WorkerResult(actionContract, tasks.Count()));
+
+            var endDate = DateTime.Now;
+
+            var dateRange = new DateRange(startDate, endDate);
+            return await Task.FromResult(new WorkerResult(workContract, tasks.Count(), dateRange));
         }
 
         private async Task ExecuteTasks(IEnumerable<Task> tasks)
@@ -54,16 +63,33 @@ namespace TaskRipper.Core
             await Task.WhenAll(tasks);
         }
 
-        private IEnumerable<Task> GetTasks(Action action, int count, CancellationToken cancellationToken)
+        private IEnumerable<Task> GetTasks(Action action, IDictionary<int, int> iterationsByThread, CancellationToken cancellationToken)
         {
             var tasks = new List<Task>();
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < iterationsByThread.Count; i++)
             {
-                tasks.Add(new Task(action, cancellationToken, TaskCreationOptions.LongRunning));
+                var iterableTask = WrapActionInIterableTask(action, iterationsByThread[i], cancellationToken);
+                tasks.Add(iterableTask);
             }
 
             return tasks;
+        }
+
+        private Task WrapActionInIterableTask(Action actionToWrap, int iterationsForThisTask, CancellationToken cancellationToken)
+        {
+            var wrappedAction = new Action(() =>
+            {
+                for (var i = 0; i < iterationsForThisTask; i++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    actionToWrap.Invoke();
+                }
+            });
+
+            var task = new Task(wrappedAction, cancellationToken, TaskCreationOptions.LongRunning);
+
+            return task;
         }
     }
 }
