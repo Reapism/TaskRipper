@@ -20,5 +20,17 @@
         public int Iterations { get; }
 
         public IExecutionSettings ExecutionSettings { get; }
+
+        public static IWorkContract Create(string description, int iterations)
+        {
+            var workContract = new WorkContract(Core.ExecutionSettings.Default, description, iterations);
+            return workContract;
+        }
+
+        public static IWorkContract Create(IExecutionSettings executionSettings, string description, int iterations)
+        {
+            var workContract = new WorkContract(executionSettings, description, iterations);
+            return workContract;
+        }
     }
 }
