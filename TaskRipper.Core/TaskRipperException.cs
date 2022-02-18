@@ -18,7 +18,7 @@
 
     public class IterationsOutOfRangeException : TaskRipperException
     {
-        public IterationsOutOfRangeException(int iterations, string parameterName)
+        public IterationsOutOfRangeException(IWorkContract workContract, int iterations, string parameterName)
             : base(message: $"The value of [{iterations}] is out of range. Parameter name [{parameterName}]")
         {
         }
