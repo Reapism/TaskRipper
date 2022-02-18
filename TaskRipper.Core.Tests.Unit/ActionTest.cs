@@ -15,11 +15,22 @@ namespace TaskRipper.Core.Tests.Unit
         {
             this.testOutputHelper = testOutputHelper;
         }
+
         [Fact]
         public async Task ExecuteActionWithAction()
         {
             var actionContract = new WorkContract(GetExecutionSettings(), "Test", 1010);
-            var executor = ActionExecutor.Default;
+            var executor = WorkExecutor.Default;
+            var cancellationToken = new CancellationTokenSource().Token;
+            var result = await executor.ExecuteAsync(actionContract, GetAction(), cancellationToken);
+
+            result.ThreadsUsed.Should().Be(actionContract.ExecutionSettings.ExecutionEnvironment.ThreadCount);
+        }
+
+        public async Task ExecuteCustomDelegateWithAction()
+        {
+            var actionContract = new WorkContract(GetExecutionSettings(), "Test", 1010);
+            var executor = WorkExecutor.Default;
             var cancellationToken = new CancellationTokenSource().Token;
             var result = await executor.ExecuteAsync(actionContract, GetAction(), cancellationToken);
 
@@ -29,20 +40,26 @@ namespace TaskRipper.Core.Tests.Unit
         [Fact]
         public async Task ExecuteActionCanBeCancelled()
         {
-            // create a contract that should take very long.
-            var actionContract = new WorkContract(GetExecutionSettings(), "Test", int.MaxValue);
-            var executor = ActionExecutor.Default;
+            // This test relies on timing of methods to recieve cancellation source.
+            // Using as little resources as possible to confirm cancellation works across many threads.
+            var actionContract = new WorkContract(GetExecutionSettings(), "Test", 100000);
+            var executor = WorkExecutor.Default;
             var source = new CancellationTokenSource();
             var cancellationToken = source.Token;
+            
             var result = executor.ExecuteAsync(actionContract, GetAction(), cancellationToken);
+            source.CancelAfter(5);
+            await Task.Delay(30);
 
-            source.Cancel();
-
-            result.IsCompleted.Should().BeFalse();
+            result.Status.Should().Be(TaskStatus.Canceled);
             result.IsCompletedSuccessfully.Should().BeFalse();
+            result.IsCanceled.Should().BeTrue();
         }
 
         private Action GetAction() => new Action(() => testOutputHelper.WriteLine(Random.Shared.Next(2).ToString()));
-        private IExecutionSettings GetExecutionSettings() => new ExecutionSettings(new ExecutionEnvironment());
+        private IExecutionSettings GetExecutionSettings()
+        {
+            return new ExecutionSettings(new Range(1, 8), new Range(1, int.MaxValue));
+        }
     }
 }
