@@ -1,5 +1,10 @@
 ﻿namespace TaskRipper.Core
 {
+    public interface IWorkerResult<T> : IWorkerResult
+    {
+        IDictionary<int, IterationResult<T>> Results { get; }
+    }
+
     public interface IWorkerResult : IDateRange
     {
         IWorkContract WorkContract { get; }
@@ -26,5 +31,21 @@
         public DateTime StartDate { get; }
 
         public DateTime EndDate { get; }
+
+        /// <summary>
+        /// Inspect this task to see information on the overall task
+        /// </summary>
+        public Task ExecuterTask { get; }
+    }
+
+    public class WorkerResult<T> : WorkerResult, IWorkerResult<T>
+    {
+        public WorkerResult(IWorkContract workContract, int threadsUsed, IDateRange dateRange, IDictionary<int, IterationResult<T>> results) 
+            : base(workContract, threadsUsed, dateRange)
+        {
+            Results = results;
+        }
+
+        public IDictionary<int, IterationResult<T>> Results { get; }
     }
 }
