@@ -21,6 +21,13 @@
 
         public IExecutionSettings ExecutionSettings { get; }
 
+        /// <summary>
+        /// Creates a work contract with default execution settings.
+        /// <para>See <see cref="ExecutionSettings.Default"/></para> to get the default settings.
+        /// </summary>
+        /// <param name="description"></param>
+        /// <param name="iterations"></param>
+        /// <returns></returns>
         public static IWorkContract Create(string description, int iterations)
         {
             var workContract = new WorkContract(Core.ExecutionSettings.Default, description, iterations);
