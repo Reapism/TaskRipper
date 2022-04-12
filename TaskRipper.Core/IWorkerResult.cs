@@ -1,11 +1,11 @@
 ﻿namespace TaskRipper.Core
 {
-    public interface IWorkerResult<T> : IWorkerResult
+    public interface IWorkerResult<TResult> : IWorkerResult
     {
-        IDictionary<int, IterationResult<T>> Results { get; }
+        IDictionary<int, IterationResult<TResult>> Results { get; }
     }
 
-    public interface IWorkerResult : IDateRange
+    public interface IWorkerResult
     {
         IWorkContract WorkContract { get; }
         TimeSpan Duration { get; }
@@ -18,8 +18,6 @@
         {
             WorkContract = workContract;
             ThreadsUsed = threadsUsed;
-            StartDate = dateRange.StartDate;
-            EndDate = dateRange.EndDate;
             Duration = dateRange.EndDate - dateRange.StartDate;
         }
         public IWorkContract WorkContract { get; }
@@ -28,24 +26,20 @@
 
         public int ThreadsUsed { get; }
 
-        public DateTime StartDate { get; }
-
-        public DateTime EndDate { get; }
-
         /// <summary>
         /// Inspect this task to see information on the overall task
         /// </summary>
         public Task ExecuterTask { get; }
     }
 
-    public class WorkerResult<T> : WorkerResult, IWorkerResult<T>
+    public class WorkerResult<TResult> : WorkerResult, IWorkerResult<TResult>
     {
-        public WorkerResult(IWorkContract workContract, int threadsUsed, IDateRange dateRange, IDictionary<int, IterationResult<T>> results) 
+        public WorkerResult(IWorkContract workContract, int threadsUsed, IDateRange dateRange, IDictionary<int, IterationResult<TResult>> results) 
             : base(workContract, threadsUsed, dateRange)
         {
             Results = results;
         }
 
-        public IDictionary<int, IterationResult<T>> Results { get; }
+        public IDictionary<int, IterationResult<TResult>> Results { get; }
     }
 }
