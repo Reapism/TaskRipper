@@ -23,4 +23,20 @@
         {
         }
     }
+
+
+    public class DateOutOfRangeException : TaskRipperException
+    {
+        public DateOutOfRangeException(IDateRange dateRange)
+            : base(message: $"The end date: [{dateRange.EndDate}] must be greater than the start date: [{dateRange.StartDate}].")
+        {
+
+        }
+
+        public DateOutOfRangeException(DateTime startDate, DateTime endDate)
+            : base(message: $"The end date: [{endDate}] must be greater than the start date: [{startDate}].")
+        {
+
+        }
+    }
 }
