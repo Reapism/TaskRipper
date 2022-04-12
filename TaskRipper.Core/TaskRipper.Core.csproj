@@ -4,6 +4,16 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Description>A performant open source library targeted for running N iterations of a delegate in parallel without having to configure or understand too much about multithreading. The library encapsulates the ability to run many delgates N times, and evenly distribute the work given the number of threads. Most models are interfaces, and therefore can be replaced with your own implementations such as how the work is balanced per thread, and how the executor executes and records information about the execution. The default settings/instances provided in the library should cover most use cases, however, I've designed the whole system to work mostly on interfaces so that you can modify the behavior of the pipeline.
+
+TODO
+- Create a WorkExecutor action/function delegate overload that accepts more than one action/function
+- - This overload would be like this ...WorkExecutor.Execute(workContract, functionToIterateNTimes, functionParameterMutator)
+- - This may or may not be possible with just using a single func, but if you want to organize your code, you can have one function to iterate, and another function that is responsible for mutating the state of the other variables.
+
+It is best depend on this package via NuGet to get the latest and greatest updates, and not be subject to maintaining a copied version in the repository in which you are working.
+
+</Description>
   </PropertyGroup>
 
 </Project>
