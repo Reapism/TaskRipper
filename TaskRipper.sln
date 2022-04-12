@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskRipper.Core", "TaskRipper.Core\TaskRipper.Core.csproj", "{41D033A2-0DCB-42E9-A1A6-9760A7D15FF6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskRipper.Core", "TaskRipper.Core\TaskRipper.Core.csproj", "{41D033A2-0DCB-42E9-A1A6-9760A7D15FF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskRipper.Core.Tests.Unit", "TaskRipper.Core.Tests.Unit\TaskRipper.Core.Tests.Unit.csproj", "{54ADA367-667A-4D33-902C-81D90B1F62F9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskRipper.Core.Tests.Unit", "TaskRipper.Core.Tests.Unit\TaskRipper.Core.Tests.Unit.csproj", "{54ADA367-667A-4D33-902C-81D90B1F62F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskRipper.Core.Benchmarks", "TaskRipper.Core.Benchmarks\TaskRipper.Core.Benchmarks.csproj", "{08BEB241-7CC8-49B3-908A-D6259F81C63B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{54ADA367-667A-4D33-902C-81D90B1F62F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{54ADA367-667A-4D33-902C-81D90B1F62F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{54ADA367-667A-4D33-902C-81D90B1F62F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08BEB241-7CC8-49B3-908A-D6259F81C63B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08BEB241-7CC8-49B3-908A-D6259F81C63B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08BEB241-7CC8-49B3-908A-D6259F81C63B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08BEB241-7CC8-49B3-908A-D6259F81C63B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
