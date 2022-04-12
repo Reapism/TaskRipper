@@ -1,14 +1,14 @@
 ﻿namespace TaskRipper.Core
 {
-    public class IterationResult<T>
+    public class IterationResult<TResult>
     {
-        public IterationResult(int iteration, T result)
+        public IterationResult(int iteration, TResult result)
         {
             Iteration = iteration;
             Result = result;
         }
 
         public int Iteration { get; }
-        public T Result { get; }
+        public TResult Result { get; }
     }
 }
