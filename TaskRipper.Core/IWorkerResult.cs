@@ -7,8 +7,19 @@
 
     public interface IWorkerResult
     {
+        /// <summary>
+        /// The original contract used to generate this result.
+        /// </summary>
         IWorkContract WorkContract { get; }
+
+        /// <summary>
+        /// The duration for this execution.
+        /// </summary>
         TimeSpan Duration { get; }
+
+        /// <summary>
+        /// The number of threads used for this specific task.
+        /// </summary>
         int ThreadsUsed { get; }
     }
 
@@ -20,10 +31,13 @@
             ThreadsUsed = threadsUsed;
             Duration = dateRange.EndDate - dateRange.StartDate;
         }
+        /// <inheritdoc/>
         public IWorkContract WorkContract { get; }
 
+        /// <inheritdoc/>
         public TimeSpan Duration { get; }
 
+        /// <inheritdoc/>
         public int ThreadsUsed { get; }
 
         /// <summary>
