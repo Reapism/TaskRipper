@@ -60,7 +60,7 @@ namespace TaskRipper.Core.Benchmarks
             var contract = WorkContract.Create(GetExecutionSettings(), func.Method.Name, OneHundredThousand);
             var unusedToken = new CancellationTokenSource().Token;
 
-            var result = await Executor.ExecuteAsync(contract, func, OneHundredThousand - 1, unusedToken);
+            var result = await Executor.ExecuteAsync(contract, func, OneHundredThousand, unusedToken);
 
             //ConsoleLogger.WriteLine($"Result duration for {func.Method.Name} iterating {contract.Iterations} took {result.Duration}");
         }
@@ -69,11 +69,9 @@ namespace TaskRipper.Core.Benchmarks
         public async Task PrintZerosAndOnesDefault()
         {
             var action = PrintZerosAndOnes();
-            var contract = WorkContract.Create(GetExecutionSettings(), action.Method.Name, OneHundredThousand);
-            var unusedToken = new CancellationTokenSource().Token;
 
             var startTime = DateTime.Now;
-            for (var i = 0; i < contract.Iterations; i++)
+            for (var i = 0; i < OneHundredThousand; i++)
             {
                 action();
             }
@@ -87,11 +85,9 @@ namespace TaskRipper.Core.Benchmarks
         public async Task PrintZerosToNDefault()
         {
             var action = PrintZerosToN(Random.Next(OneHundredThousand));
-            var contract = WorkContract.Create(GetExecutionSettings(), action.Method.Name, OneHundredThousand);
-            var unusedToken = new CancellationTokenSource().Token;
 
             var startTime = DateTime.Now;
-            for (var i = 0; i < contract.Iterations; i++)
+            for (var i = 0; i < OneHundredThousand; i++)
             {
                 action(i);
             }
@@ -105,12 +101,10 @@ namespace TaskRipper.Core.Benchmarks
         public async Task GetZeroAndOnesDefault()
         {
             var func = GetZeroAndOnes();
-            var contract = WorkContract.Create(GetExecutionSettings(), func.Method.Name, OneHundredThousand);
-            var unusedToken = new CancellationTokenSource().Token;
 
             var startTime = DateTime.Now;
-            var queue = new Queue<int>(contract.Iterations);
-            for (var i = 0; i < contract.Iterations; i++)
+            var queue = new Queue<int>(OneHundredThousand);
+            for (var i = 0; i < OneHundredThousand; i++)
             {
                 // simulate storing the return of each function call in a queue that won't resize.
                 queue.Enqueue(func());
@@ -125,13 +119,11 @@ namespace TaskRipper.Core.Benchmarks
         public async Task GetZeroToNDefault()
         {
             var func = GetZeroToN(OneHundredThousand);
-            var contract = WorkContract.Create(GetExecutionSettings(), func.Method.Name, OneHundredThousand);
-            var unusedToken = new CancellationTokenSource().Token;
 
             // Compute duration by invoking a delegate N times in a single threaded loop.
             var startTime = DateTime.Now;
-            var queue = new Queue<int>(contract.Iterations);
-            for (var i = 0; i < contract.Iterations; i++)
+            var queue = new Queue<int>(OneHundredThousand);
+            for (var i = 0; i < OneHundredThousand; i++)
             {
                 // simulate storing the return of each function call in a queue that won't resize.
                 queue.Enqueue(func(i));
@@ -142,7 +134,7 @@ namespace TaskRipper.Core.Benchmarks
             //ConsoleLogger.WriteLine($"Result duration for {func.Method.Name} iterating {contract.Iterations} took {duration}");
         }
 
-        private static IExecutionSettings GetExecutionSettings()
+        private IExecutionSettings GetExecutionSettings()
         {
             // Ensure the execution range is within the tests execution range.
             return new ExecutionSettings(new Range(1, 8), new Range(1, OneHundredThousand + 1));
