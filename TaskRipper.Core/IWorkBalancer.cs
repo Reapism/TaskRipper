@@ -54,6 +54,17 @@
             var tuple = Math.DivRem(dividend, divisor);
             var index = 0;
 
+            // If the dividend and divisor does not divide at all, and the remainder is less than or equal to the max thread count
+            // then, for each remainder, add reaminder number of threads with a single iteration in each.
+            if (tuple.Quotient == 0 && tuple.Remainder <= workContract.ExecutionSettings.ThreadRange.End.Value)
+            {
+                for (; index < tuple.Remainder; index++)
+                {
+                    iterationsByThread.Add(index, 1);
+                }
+                return iterationsByThread;
+            }
+
             for (; index < divisor - 1; index++)
             {
                 iterationsByThread.Add(index, tuple.Quotient);
