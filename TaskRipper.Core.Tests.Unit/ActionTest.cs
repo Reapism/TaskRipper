@@ -111,7 +111,7 @@ namespace TaskRipper.Core.Tests.Unit
         });
         private IExecutionSettings GetExecutionSettings()
         {
-            return new ExecutionSettings(new Range(1, 8), new Range(1, int.MaxValue));
+            return new ExecutionSettings(new Range(1, 8), new Range(1, int.MaxValue), WorkBalancerOptions.Optimize);
         }
 
     }

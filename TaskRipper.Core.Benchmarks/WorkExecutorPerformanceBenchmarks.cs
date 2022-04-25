@@ -137,7 +137,7 @@ namespace TaskRipper.Core.Benchmarks
         private IExecutionSettings GetExecutionSettings()
         {
             // Ensure the execution range is within the tests execution range.
-            return new ExecutionSettings(new Range(1, 8), new Range(1, OneHundredThousand + 1));
+            return new ExecutionSettings(new Range(1, 8), new Range(1, OneHundredThousand + 1), WorkBalancerOptions.Optimize);
         }
 
         private Action PrintZerosAndOnes()
