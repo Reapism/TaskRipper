@@ -3,16 +3,49 @@
     public interface IWorkBalancer
     {
         IDictionary<int, int> Balance(IWorkContract workContract);
+        // TODO generate method that will execute the task
+        WorkBalancerOptions ComputeBestWorkBalancerOptions<T>(IWorkContract workContract, IWorkExecutor workExecutor, T @delegate, CancellationToken cancellationToken, object[] args)
+            where T : Delegate;
     }
 
     public class WorkBalancer : IWorkBalancer
     {
         public IDictionary<int, int> Balance(IWorkContract workContract)
         {
+            return BalanceInternal(workContract);
+        }
+
+        private IDictionary<int, int> BalanceInternal(IWorkContract workContract)
+        {
             ValidateParameters(workContract);
+
+            var workBalancerFunction = GetWorkBalancerFunction(workContract.ExecutionSettings.WorkBalancerOptions);
+            var iterationsByThread = workBalancerFunction.Invoke(workContract);
+
+            RemoveEmptyEntries(iterationsByThread);
+
+            return iterationsByThread;
+        }
+
+        private Func<IWorkContract, IDictionary<int,int>> GetWorkBalancerFunction(WorkBalancerOptions workBalancerOptions)
+        {
+            return workBalancerOptions switch
+            {
+                WorkBalancerOptions.Optimize => Optimize,
+                WorkBalancerOptions.None => None,
+                WorkBalancerOptions.Min => Min,
+                WorkBalancerOptions.Medium => Medium,
+                WorkBalancerOptions.High => High,
+                _ => throw new ArgumentOutOfRangeException(nameof(workBalancerOptions)),
+            };
+        }
+
+        private IDictionary<int, int> Optimize(IWorkContract workContract)
+        {
             var iterationsByThread = new Dictionary<int, int>();
+
             var dividend = workContract.Iterations;
-            var divisor = workContract.ExecutionSettings.ExecutionEnvironment.ThreadCount;
+            var divisor = workContract.ExecutionSettings.ThreadRange.End.Value;
 
 
             if (divisor <= 0)
@@ -28,7 +61,85 @@
 
             iterationsByThread.Add(index, tuple.Quotient + tuple.Remainder);
 
-            RemoveEmptyEntries(iterationsByThread);
+            return iterationsByThread;
+        }
+
+        private IDictionary<int, int> None(IWorkContract workContract)
+        {
+            var iterationsByThread = new Dictionary<int, int>();
+
+            iterationsByThread.Add(0, workContract.Iterations);
+
+            return iterationsByThread;
+        }
+
+        private IDictionary<int, int> Min(IWorkContract workContract)
+        {
+            var iterationsByThread = new Dictionary<int, int>();
+
+            var dividend = workContract.Iterations;
+            var divisor = workContract.ExecutionSettings.ThreadRange.End.Value / 3;
+
+            if (divisor <= 0)
+                throw new ArgumentException("The divisor must be at least 1.");
+
+            var tuple = Math.DivRem(dividend, divisor);
+            var index = 0;
+
+            for (; index < divisor - 1; index++)
+            {
+                iterationsByThread.Add(index, tuple.Quotient);
+            }
+
+            iterationsByThread.Add(index, tuple.Quotient + tuple.Remainder);
+
+            return iterationsByThread;
+        }
+
+        private IDictionary<int, int> Medium(IWorkContract workContract)
+        {
+            var iterationsByThread = new Dictionary<int, int>();
+
+            var dividend = workContract.Iterations;
+            var divisor = workContract.ExecutionSettings.ThreadRange.End.Value;
+
+
+            if (divisor <= 0)
+                throw new ArgumentException("The divisor must be at least 1.");
+
+            var tuple = Math.DivRem(dividend, divisor);
+            var index = 0;
+
+            for (; index < divisor - 1; index++)
+            {
+                iterationsByThread.Add(index, tuple.Quotient);
+            }
+
+            iterationsByThread.Add(index, tuple.Quotient + tuple.Remainder);
+
+            return iterationsByThread;
+        }
+
+        private IDictionary<int, int> High(IWorkContract workContract)
+        {
+            var iterationsByThread = new Dictionary<int, int>();
+
+            var dividend = workContract.Iterations;
+            var divisor = workContract.ExecutionSettings.ThreadRange.End.Value;
+
+
+            if (divisor <= 0)
+                throw new ArgumentException("The divisor must be at least 1.");
+
+            var tuple = Math.DivRem(dividend, divisor);
+            var index = 0;
+
+            for (; index < divisor - 1; index++)
+            {
+                iterationsByThread.Add(index, tuple.Quotient);
+            }
+
+            iterationsByThread.Add(index, tuple.Quotient + tuple.Remainder);
 
             return iterationsByThread;
         }
@@ -45,6 +156,13 @@
             foreach (var kvp in keyValuePairs)
                 if (kvp.Value == 0)
                     keyValuePairs.Remove(kvp.Key);
+        }
+
+        WorkBalancerOptions IWorkBalancer.ComputeBestWorkBalancerOptions<T>(IWorkContract workContract, IWorkExecutor workExecutor, T @delegate, CancellationToken cancellationToken, object[] args)
+        {
+            // Runs each task and measures the time in each result.
+            //workExecutor.ExecuteAsync(workContract, @delegate, cancellationToken);
+            return WorkBalancerOptions.None;
         }
     }
 }
