@@ -4,8 +4,8 @@
     {
         IDictionary<int, int> Balance(IWorkContract workContract);
         // TODO generate method that will execute the task
-        WorkBalancerOptions ComputeBestWorkBalancerOptions<T>(IWorkContract workContract, IWorkExecutor workExecutor, T @delegate, CancellationToken cancellationToken, object[] args)
-            where T : Delegate;
+        //WorkBalancerOptions ComputeBestWorkBalancerOptions<T>(IWorkContract workContract, IWorkExecutor workExecutor, T @delegate, CancellationToken cancellationToken, object[] args)
+            //where T : Delegate;
     }
 
     public class WorkBalancer : IWorkBalancer
@@ -169,11 +169,5 @@
                     keyValuePairs.Remove(kvp.Key);
         }
 
-        WorkBalancerOptions IWorkBalancer.ComputeBestWorkBalancerOptions<T>(IWorkContract workContract, IWorkExecutor workExecutor, T @delegate, CancellationToken cancellationToken, object[] args)
-        {
-            // Runs each task and measures the time in each result.
-            //workExecutor.ExecuteAsync(workContract, @delegate, cancellationToken);
-            return WorkBalancerOptions.None;
-        }
     }
 }
