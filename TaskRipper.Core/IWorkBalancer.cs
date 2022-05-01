@@ -89,7 +89,11 @@
             var iterationsByThread = new Dictionary<int, int>();
 
             var dividend = workContract.Iterations;
-            var divisor = workContract.ExecutionSettings.ThreadRange.End.Value / 3;
+            // if min thread range is greater than iterations, use number of iterations as divisor, else
+            // use the min thread range.
+            var divisor = workContract.ExecutionSettings.ThreadRange.Start.Value > workContract.Iterations 
+                ? workContract.Iterations 
+                : workContract.ExecutionSettings.ThreadRange.Start.Value;
 
             if (divisor <= 0)
                 throw new ArgumentException("The divisor must be at least 1.");
@@ -112,8 +116,10 @@
             var iterationsByThread = new Dictionary<int, int>();
 
             var dividend = workContract.Iterations;
-            var divisor = workContract.ExecutionSettings.ThreadRange.End.Value;
 
+            var divisor = workContract.ExecutionSettings.ThreadRange.End.Value > workContract.Iterations
+                ? workContract.Iterations
+                : workContract.ExecutionSettings.ThreadRange.End.Value;
 
             if (divisor <= 0)
                 throw new ArgumentException("The divisor must be at least 1.");
@@ -136,8 +142,11 @@
             var iterationsByThread = new Dictionary<int, int>();
 
             var dividend = workContract.Iterations;
-            var divisor = workContract.ExecutionSettings.ThreadRange.End.Value;
-
+            // if max thread range is greater than iterations, use number of iterations as divisor, else
+            // use the max thread range.
+            var divisor = workContract.ExecutionSettings.ThreadRange.End.Value > workContract.Iterations
+                ? workContract.Iterations
+                : workContract.ExecutionSettings.ThreadRange.End.Value;
 
             if (divisor <= 0)
                 throw new ArgumentException("The divisor must be at least 1.");
@@ -168,6 +177,5 @@
                 if (kvp.Value == 0)
                     keyValuePairs.Remove(kvp.Key);
         }
-
     }
 }
