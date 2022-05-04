@@ -11,13 +11,13 @@ Included is creating the `IWorkExecutor` instance which can be injected via cons
 
 In two lines essentially, you're able to execute a task.
 ```csharp
-var workContract = WorkerContract.Create("Say Hello World 100 times", 100);
+var workContract = WorkContract.Create("Say Hello World 100 times", 100);
 var workExecutor = WorkExecutor.Default;
 var result = await workExecutor.ExecuteAsync(workContract, () => Console.WriteLine("Hello World"), cancellationToken);
 ```
 #### Print 1-1000
 ```csharp
-var workContract = WorkerContract.Create("Print 1-1000", 1000);
+var workContract = WorkContract.Create("Print 1-1000", 1000);
 var workExecutor = WorkExecutor.Default;
 var i = 1;
 var result = await workExecutor.ExecuteAsync(workContract, (i) => Console.WriteLine(i.ToString()), cancellationToken);
