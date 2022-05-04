@@ -67,7 +67,8 @@
         IExecutionEnvironment ExecutionEnvironment { get; }
 
         /// <summary>
-        /// 
+        /// The options to describe to a <see cref="IWorkBalancer"/>
+        /// how to balance the work.
         /// </summary>
         WorkBalancerOptions WorkBalancerOptions { get; }
     }
@@ -76,7 +77,7 @@
     {
         private static IExecutionSettings? defaultInstance;
         /// <summary>
-        /// Gets a default instance of the <see cref="IExecutionSettings"/>
+        /// Gets a default instance of the <see cref="IExecutionSettings"/>.
         /// </summary>
         /// <remarks>
         /// * Default <see cref="IExecutionSettings.ThreadRange"/> is (1 - <see cref="IExecutionEnvironment.ThreadCount"/>)
@@ -95,7 +96,6 @@
                     var maxExecutionRange = threadRange.End.Value * 1000;
                     var executionRange = new Range(1, maxExecutionRange);
                     defaultInstance = new ExecutionSettings(executionEnv, threadRange, executionRange, WorkBalancerOptions.Optimize);
-
                 }
 
                 return defaultInstance;
@@ -124,6 +124,7 @@
         /// <inheritdoc/>
         public IExecutionEnvironment ExecutionEnvironment { get; }
 
+        /// <inheritdoc/>
         public WorkBalancerOptions WorkBalancerOptions { get; }
     }
 }
