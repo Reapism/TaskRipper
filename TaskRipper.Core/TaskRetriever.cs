@@ -40,9 +40,9 @@
             return tasks;
         }
 
-        internal static IEnumerable<Task> GetTasks<TResult>(Func<TResult> func, IDictionary<int, int> iterationsByThread, CancellationToken cancellationToken)
+        internal static IEnumerable<Task<IEnumerable<TResult>>> GetTasks<TResult>(Func<TResult> func, IDictionary<int, int> iterationsByThread, CancellationToken cancellationToken)
         {
-            var tasks = new List<Task>();
+            var tasks = new List<IEnumerable<Task<IEnumerable<TResult>>>>();
 
             for (int i = 0; i < iterationsByThread.Count; i++)
             {
@@ -52,9 +52,9 @@
 
             return tasks;
         }
-        internal static IEnumerable<Task> GetTasks<T, TResult>(Func<T, TResult> func, T param, IDictionary<int, int> iterationsByThread, CancellationToken cancellationToken)
+        internal static IEnumerable<Task<IEnumerable<TResult>>> GetTasks<T, TResult>(Func<T, TResult> func, T param, IDictionary<int, int> iterationsByThread, CancellationToken cancellationToken)
         {
-            var tasks = new List<Task>();
+            var tasks = new List<IEnumerable<Task<IEnumerable<TResult>>>>();
 
             for (int i = 0; i < iterationsByThread.Count; i++)
             {
@@ -65,9 +65,9 @@
             return tasks;
         }
 
-        internal static IEnumerable<Task> GetTasks<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 param, T2 param2, IDictionary<int, int> iterationsByThread, CancellationToken cancellationToken)
+        internal static IEnumerable<Task<IEnumerable<TResult>>> GetTasks<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 param, T2 param2, IDictionary<int, int> iterationsByThread, CancellationToken cancellationToken)
         {
-            var tasks = new List<Task>();
+            var tasks = new List<Task<IEnumerable<TResult>>>();
 
             for (int i = 0; i < iterationsByThread.Count; i++)
             {
