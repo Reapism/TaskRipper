@@ -38,6 +38,21 @@
 		Command line usage to run the benchmarks on the executing machine.
 		`dotnet run -c Release -p TaskRipper.Core.Benchmarks`
 	</Description>
+    <PackageProjectUrl>https://github.com/Reapism/TaskRipper</PackageProjectUrl>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/Reapism/TaskRipper</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>task, multithreading, library, multi threaded performance</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
