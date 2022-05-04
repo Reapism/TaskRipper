@@ -7,11 +7,11 @@ using Xunit.Abstractions;
 
 namespace TaskRipper.Core.Tests.Unit
 {
-    public class ActionTest
+    public class ActionTests
     {
         private readonly ITestOutputHelper testOutputHelper;
 
-        public ActionTest(ITestOutputHelper testOutputHelper)
+        public ActionTests(ITestOutputHelper testOutputHelper)
         {
             this.testOutputHelper = testOutputHelper;
         }
