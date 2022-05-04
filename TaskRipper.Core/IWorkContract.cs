@@ -1,6 +1,6 @@
 ﻿namespace TaskRipper.Core
 {
-    public interface IWorkContract : IWorkerParameters
+    public interface IWorkContract : IWorkParameters
     {
         IExecutionSettings ExecutionSettings { get; }
     }

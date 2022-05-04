@@ -1,11 +1,11 @@
 ﻿namespace TaskRipper.Core
 {
-    public interface IWorkerResult<TResult> : IWorkerResult
+    public interface IWorkResult<TResult> : IWorkResult
     {
         IDictionary<int, IterationResult<TResult>> Results { get; }
     }
 
-    public interface IWorkerResult
+    public interface IWorkResult
     {
         /// <summary>
         /// The original contract used to generate this result.
@@ -23,9 +23,9 @@
         int ThreadsUsed { get; }
     }
 
-    public class WorkerResult : IWorkerResult
+    public class WorkResult : IWorkResult
     {
-        public WorkerResult(IWorkContract workContract, int threadsUsed, IDateRange dateRange)
+        public WorkResult(IWorkContract workContract, int threadsUsed, IDateRange dateRange)
         {
             WorkContract = workContract;
             ThreadsUsed = threadsUsed;
@@ -46,9 +46,9 @@
         public Task ExecuterTask { get; }
     }
 
-    public class WorkerResult<TResult> : WorkerResult, IWorkerResult<TResult>
+    public class WorkResult<TResult> : WorkResult, IWorkResult<TResult>
     {
-        public WorkerResult(IWorkContract workContract, int threadsUsed, IDateRange dateRange, IDictionary<int, IterationResult<TResult>> results) 
+        public WorkResult(IWorkContract workContract, int threadsUsed, IDateRange dateRange, IDictionary<int, IterationResult<TResult>> results) 
             : base(workContract, threadsUsed, dateRange)
         {
             Results = results;
