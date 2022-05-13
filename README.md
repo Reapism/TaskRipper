@@ -1,3 +1,5 @@
+<img src="https://user-images.githubusercontent.com/1627999/168216993-f6dbe7b8-85eb-4863-af1b-bc920f856b55.png" data-canonical-src="https://user-images.githubusercontent.com/1627999/168216993-f6dbe7b8-85eb-4863-af1b-bc920f856b55.png" width="250" height="250"/>
+
 # TaskRipper
 A library for executing delegates N times, on multiple threads simplifying the balancing of work for each thread, and supporting CancellationTokens.
 
@@ -22,3 +24,4 @@ var workExecutor = WorkExecutor.Default;
 var i = 1;
 var result = await workExecutor.ExecuteAsync(workContract, (i) => Console.WriteLine(i.ToString()), cancellationToken);
 ```
+
