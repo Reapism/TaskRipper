@@ -2,15 +2,16 @@
 {
     /// <summary>
     /// Purpose is to wrap incoming delegates in a specific type of iterable task
-    /// whilst honoring possible cancellation per iteration.
+    /// whilst honoring possible cancellation per iteration and storing results of
+    /// specific delegates with returning values.
     /// </summary>
     internal class IterableDelegateWrapper
     {
-        internal static Task WrapAndExecute(Action action, int iterationsForThisTask, CancellationToken cancellationToken)
+        internal static Task WrapAndExecute(Action action, IterationThread iterationThread, CancellationToken cancellationToken)
         {
             var wrappedAction = new Action(() =>
             {
-                for (var i = 0; i < iterationsForThisTask; i++)
+                for (var i = 0; i < iterationThread.Iterations; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     action();
@@ -22,11 +23,11 @@
             return wrappedTask;
         }
 
-        internal static Task WrapAndExecute<T>(Action<T> action, T param, int iterationsForThisTask, CancellationToken cancellationToken)
+        internal static Task WrapAndExecute<T>(Action<T> action, T param, IterationThread iterationThread, CancellationToken cancellationToken)
         {
             var wrappedAction = new Action(() =>
             {
-                for (var i = 0; i < iterationsForThisTask; i++)
+                for (var i = 0; i < iterationThread.Iterations; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     action(param);
@@ -38,11 +39,11 @@
             return wrappedTask;
         }
 
-        internal static Task WrapAndExecute<T1, T2>(Action<T1, T2> action, T1 param, T2 param2, int iterationsForThisTask, CancellationToken cancellationToken)
+        internal static Task WrapAndExecute<T1, T2>(Action<T1, T2> action, T1 param, T2 param2, IterationThread iterationThread, CancellationToken cancellationToken)
         {
             var wrappedAction = new Action(() =>
             {
-                for (var i = 0; i < iterationsForThisTask; i++)
+                for (var i = 0; i < iterationThread.Iterations; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     action(param, param2);
@@ -54,15 +55,15 @@
             return wrappedTask;
         }
 
-        internal static Task<IEnumerable<TResult>> WrapAndExecute<TResult>(Func<TResult> func, int iterationsForThisTask, CancellationToken cancellationToken)
+        internal static Task<IEnumerable<TResult>> WrapAndExecute<TResult>(Func<TResult> func, IterationThread iterationThread, CancellationToken cancellationToken)
         {
             // need a wrapped function to store the value of each func return and
             // enqueue it. 
             // then start the task. and expect the IEnumerable<TReturn> back.
             var wrappedFunc = new Func<IEnumerable<TResult>>(() =>
             {
-                var funcReturns = new Queue<TResult>(iterationsForThisTask);
-                for (var i = 0; i < iterationsForThisTask; i++)
+                var funcReturns = new Queue<TResult>(iterationThread.Iterations);
+                for (var i = 0; i < iterationThread.Iterations; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     funcReturns.Enqueue(func());
@@ -75,15 +76,15 @@
             return wrappedTask;
         }
 
-        internal static Task<IEnumerable<TResult>> WrapAndExecute<T, TResult>(Func<T, TResult> func, T param, int iterationsForThisTask, CancellationToken cancellationToken)
+        internal static Task<IEnumerable<TResult>> WrapAndExecute<T, TResult>(Func<T, TResult> func, T param, IterationThread iterationThread, CancellationToken cancellationToken)
         {
             // need a wrapped function to store the value of each func return and
             // enqueue it. 
             // then start the task. and expect the IEnumerable<TReturn> back.
             var wrappedFunc = new Func<IEnumerable<TResult>>(() =>
             {
-                var funcReturns = new Queue<TResult>(iterationsForThisTask);
-                for (var i = 0; i < iterationsForThisTask; i++)
+                var funcReturns = new Queue<TResult>(iterationThread.Iterations);
+                for (var i = 0; i < iterationThread.Iterations; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     funcReturns.Enqueue(func(param));
@@ -96,15 +97,15 @@
             return wrappedTask;
         }
 
-        internal static Task<IEnumerable<TResult>> WrapAndExecute<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 param, T2 param2, int iterationsForThisTask, CancellationToken cancellationToken)
+        internal static Task<IEnumerable<TResult>> WrapAndExecute<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 param, T2 param2, IterationThread iterationThread, CancellationToken cancellationToken)
         {
             // need a wrapped function to store the value of each func return and
             // enqueue it. 
             // then start the task. and expect the IEnumerable<TReturn> back.
             var wrappedFunc = new Func<IEnumerable<TResult>>(() =>
             {
-                var funcReturns = new Queue<TResult>(iterationsForThisTask);
-                for (var i = 0; i < iterationsForThisTask; i++)
+                var funcReturns = new Queue<TResult>(iterationThread.Iterations);
+                for (var i = 0; i < iterationThread.Iterations; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     funcReturns.Enqueue(func(param, param2));
@@ -117,11 +118,11 @@
             return wrappedTask;
         }
 
-        internal static Task Wrap(Action action, int iterationsForThisTask, CancellationToken cancellationToken)
+        internal static Task Wrap(Action action, IterationThread iterationThread, CancellationToken cancellationToken)
         {
             var wrappedAction = new Action(() =>
             {
-                for (var i = 0; i < iterationsForThisTask; i++)
+                for (var i = 0; i < iterationThread.Iterations; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     action();
@@ -132,11 +133,11 @@
             return wrappedTask;
         }
 
-        internal static Task Wrap<T>(Action<T> action, T param, int iterationsForThisTask, CancellationToken cancellationToken)
+        internal static Task Wrap<T>(Action<T> action, T param, IterationThread iterationThread, CancellationToken cancellationToken)
         {
             var wrappedAction = new Action(() =>
             {
-                for (var i = 0; i < iterationsForThisTask; i++)
+                for (var i = 0; i < iterationThread.Iterations; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     action(param);
@@ -147,11 +148,11 @@
             return wrappedTask;
         }
 
-        internal static Task Wrap<T1, T2>(Action<T1, T2> action, T1 param, T2 param2, int iterationsForThisTask, CancellationToken cancellationToken)
+        internal static Task Wrap<T1, T2>(Action<T1, T2> action, T1 param, T2 param2, IterationThread iterationThread, CancellationToken cancellationToken)
         {
             var wrappedAction = new Action(() =>
             {
-                for (var i = 0; i < iterationsForThisTask; i++)
+                for (var i = 0; i < iterationThread.Iterations; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     action(param, param2);
@@ -162,54 +163,54 @@
             return wrappedTask;
         }
 
-        internal static Task<IEnumerable<TResult>> Wrap<TResult>(Func<TResult> func, int iterationsForThisTask, CancellationToken cancellationToken)
+        internal static Task<IDictionary<int, IterationResult<TResult>>> Wrap<TResult>(Func<TResult> func, IterationThread iterationThread, CancellationToken cancellationToken)
         {
-            var wrappedFunction = new Func<IEnumerable<TResult>>(() =>
+            var wrappedFunction = new Func<IDictionary<int, IterationResult<TResult>>>(() =>
             {
-                var queue = new Queue<TResult>();
-                for (var i = 0; i < iterationsForThisTask; i++)
+                var values= new Dictionary<int, IterationResult<TResult>>();
+                for (var i = 0; i < iterationThread.Iterations; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    queue.Enqueue(func());
+                    values.Add(iterationThread.ThreadNumber, new IterationResult<TResult>(i, func()));
                 }
-                return queue;
+                return values;
             });
 
-            var wrappedTask = new Task<IEnumerable<TResult>>(wrappedFunction, cancellationToken, TaskCreationOptions.LongRunning);
+            var wrappedTask = new Task<IDictionary<int, IterationResult< TResult>>> (wrappedFunction, cancellationToken, TaskCreationOptions.LongRunning);
             return wrappedTask;
         }
 
-        internal static Task<IEnumerable<TResult>> Wrap<T, TResult>(Func<T, TResult> func, T param, int iterationsForThisTask, CancellationToken cancellationToken)
+        internal static Task<IDictionary<int, IterationResult<TResult>>> Wrap<T, TResult>(Func<T, TResult> func, T param, IterationThread iterationThread, CancellationToken cancellationToken)
         {
-            var wrappedFunction = new Func<IEnumerable<TResult>>(() =>
+            var wrappedFunction = new Func<IDictionary<int, IterationResult<TResult>>>(() =>
             {
-                var queue = new Queue<TResult>();
-                for (var i = 0; i < iterationsForThisTask; i++)
+                var values= new Dictionary<int, IterationResult<TResult>>();
+                for (var i = 0; i < iterationThread.Iterations; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    queue.Enqueue(func(param));
+                    values.Add(iterationThread.ThreadNumber, new IterationResult<TResult>(i, func(param)));
                 }
-                return queue;
+                return values;
             });
 
-            var wrappedTask = new Task<IEnumerable<TResult>>(wrappedFunction, cancellationToken, TaskCreationOptions.LongRunning);
+            var wrappedTask = new Task<IDictionary<int, IterationResult<TResult>>>(wrappedFunction, cancellationToken, TaskCreationOptions.LongRunning);
             return wrappedTask;
         }
 
-        internal static Task<IEnumerable<TResult>> Wrap<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 param, T2 param2, int iterationsForThisTask, CancellationToken cancellationToken)
+        internal static Task<IDictionary<int, IterationResult<TResult>>> Wrap<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 param, T2 param2, IterationThread iterationThread, CancellationToken cancellationToken)
         {
-            var wrappedFunction = new Func<IEnumerable<TResult>>(() =>
+            var wrappedFunction = new Func<IDictionary<int, IterationResult<TResult>>>(() =>
             {
-                var queue = new Queue<TResult>();
-                for (var i = 0; i < iterationsForThisTask; i++)
+                var values = new Dictionary<int, IterationResult<TResult>>();
+                for (var i = 0; i < iterationThread.Iterations; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    queue.Enqueue(func(param, param2));
+                    values.Add(iterationThread.ThreadNumber, new IterationResult<TResult>(i, func(param, param2)));
                 }
-                return queue;
+                return values;
             });
 
-            var wrappedTask = new Task<IEnumerable<TResult>>(wrappedFunction, cancellationToken, TaskCreationOptions.LongRunning);
+            var wrappedTask = new Task<IDictionary<int, IterationResult<TResult>>>(wrappedFunction, cancellationToken, TaskCreationOptions.LongRunning);
             return wrappedTask;
         }
     }
