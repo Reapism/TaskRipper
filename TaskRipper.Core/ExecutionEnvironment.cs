@@ -1,7 +1,36 @@
 ﻿namespace TaskRipper.Core
 {
-    public class ExecutionEnvironment : IExecutionEnvironment
+    public class ExecutionEnvironment : IExecutionEnvironment, IEquatable<ExecutionEnvironment>
     {
-        public int ThreadCount { get => Environment.ProcessorCount; }
+        public ExecutionEnvironment()
+        {
+            ThreadCount = Environment.ProcessorCount;
+        }
+
+        public int ThreadCount { get; }
+
+        /// <summary>
+        /// Returns an instance using the default constructor.
+        /// </summary>
+        public static IExecutionEnvironment Default { get; } = new ExecutionEnvironment();
+
+        public bool Equals(ExecutionEnvironment? other)
+        {
+            if (other is null)
+                return false;
+
+            return ThreadCount == other.ThreadCount;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is null)
+                return false;
+
+            if (obj is ExecutionEnvironment other)
+                return Equals(other);
+
+            return false;
+        }
     }
 }

@@ -1,7 +1,7 @@
 ﻿namespace TaskRipper.Core
 {
 
-    public class WorkContract : IWorkContract
+    public class WorkContract : IWorkContract, IEquatable<WorkContract>
     {
         public WorkContract(string description, int iterations = 1)
             : this(Core.ExecutionSettings.Default, description, iterations)
@@ -38,6 +38,27 @@
         {
             var workContract = new WorkContract(executionSettings, description, iterations);
             return workContract;
+        }
+
+        public bool Equals(WorkContract? other)
+        {
+            if (other is null)
+                return false;
+
+            return Iterations == other.Iterations &&
+                Description.Equals(other.Description) &&
+                ExecutionSettings.Equals(other.ExecutionSettings);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is null)
+                return false;
+
+            if (obj is WorkContract other)
+                return Equals(other);
+
+            return false;
         }
     }
 }
