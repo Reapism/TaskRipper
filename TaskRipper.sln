@@ -7,7 +7,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskRipper.Core", "TaskRipp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskRipper.Core.Tests.Unit", "TaskRipper.Core.Tests.Unit\TaskRipper.Core.Tests.Unit.csproj", "{54ADA367-667A-4D33-902C-81D90B1F62F9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskRipper.Core.Benchmarks", "TaskRipper.Core.Benchmarks\TaskRipper.Core.Benchmarks.csproj", "{08BEB241-7CC8-49B3-908A-D6259F81C63B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskRipper.Core.Benchmarks", "TaskRipper.Core.Benchmarks\TaskRipper.Core.Benchmarks.csproj", "{08BEB241-7CC8-49B3-908A-D6259F81C63B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A0ACF504-E144-4C37-89D8-A757DC97A451}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
