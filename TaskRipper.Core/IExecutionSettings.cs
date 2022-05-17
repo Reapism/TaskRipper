@@ -101,5 +101,16 @@
 
             return false;
         }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine
+            (
+                ExecutionRange.GetHashCode(),
+                ThreadRange.GetHashCode(),
+                ExecutionEnvironment.GetHashCode(),
+                WorkBalancerOptions.GetHashCode()
+            );
+        }
     }
 }

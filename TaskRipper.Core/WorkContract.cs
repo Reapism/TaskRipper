@@ -60,5 +60,10 @@
 
             return false;
         }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Iterations, Description, ExecutionSettings.GetHashCode());
+        }
     }
 }
