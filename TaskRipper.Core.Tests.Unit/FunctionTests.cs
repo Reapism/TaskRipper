@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -24,14 +25,16 @@ namespace TaskRipper.Core.Tests.Unit
             var cancellationToken = new CancellationTokenSource().Token;
             var result = await executor.ExecuteAsync(contract, IsNumberPrime(), 1, cancellationToken);
             
-            result.Results.Count.Should().Be(1000);
             // expectations
+            result.Duration.Should().NotBe(default);
+            result.WorkContract.Should().Be(contract);
             result.ThreadsUsed.Should().Be(contract.ExecutionSettings.ExecutionEnvironment.ThreadCount);
+            result.Results.Count().Should().Be(result.ThreadsUsed);
+            result.Results.Sum(e => e.Values.Count).Should().Be(result.WorkContract.Iterations);
         }
 
-        private Action PrintOnesAndZeros() => new Action(() => testOutputHelper.WriteLine(Random.Shared.Next(2).ToString()));
         private Func<int, bool> IsNumberPrime()
-            => new Func<int, bool>((number) =>
+            => new((number) =>
         {
             if (number <= 1) return false;
             if (number == 2) return true;
@@ -49,7 +52,7 @@ namespace TaskRipper.Core.Tests.Unit
 
         private IExecutionSettings GetExecutionSettings()
         {
-            return new ExecutionSettings(new Range(1, 8), new Range(1, int.MaxValue), WorkBalancerOptions.Optimize);
+            return new ExecutionSettings(ExecutionEnvironment.Create(1), new Range(1, 1), new Range(1, int.MaxValue), WorkBalancerOptions.Optimize);
         }
 
     }
