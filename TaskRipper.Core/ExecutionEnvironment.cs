@@ -7,13 +7,21 @@
             ThreadCount = Environment.ProcessorCount;
         }
 
+        public ExecutionEnvironment(int threadCount)
+        {
+            ThreadCount = threadCount;
+        }
+
         public int ThreadCount { get; }
 
         /// <summary>
         /// Returns an instance using the default constructor.
         /// </summary>
         public static IExecutionEnvironment Default { get; } = new ExecutionEnvironment();
-
+        public static IExecutionEnvironment Create(int threadCount)
+        {
+            return new ExecutionEnvironment(threadCount);
+        }
         public bool Equals(ExecutionEnvironment? other)
         {
             if (other is null)
