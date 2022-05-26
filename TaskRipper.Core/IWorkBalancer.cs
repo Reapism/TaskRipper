@@ -47,7 +47,6 @@
             var dividend = workContract.Iterations;
             var divisor = workContract.ExecutionSettings.ThreadRange.End.Value;
 
-
             if (divisor <= 0)
                 throw new ArgumentException("The divisor must be at least 1.");
 
