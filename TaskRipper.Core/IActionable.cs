@@ -4,13 +4,17 @@
     {
         Action Action { get; }
     }
-    public interface IActionable<in T>
+
+    public interface IActionable<T>
     {
         Action<T> Action { get; }
+        T Param { get; }
     }
 
-    public interface IActionable<in T1, in T2>
+    public interface IActionable<T1, T2>
     {
         Action<T1, T2> Action { get; }
+        T1 Param { get; }
+        T2 Param2 { get; }
     }
 }
