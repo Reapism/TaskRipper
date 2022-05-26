@@ -2,7 +2,11 @@
 {
     public interface IWorkResult<TResult> : IWorkResult
     {
-        IDictionary<int, IterationResult<TResult>> Results { get; }
+        /// <summary>
+        /// A collection of key/value pairs that contain the result of every iteration
+        /// by every thread for a particular work.
+        /// </summary>
+        IEnumerable<IDictionary<int, IterationResult<TResult>>> Results { get; }
     }
 
     public interface IWorkResult
@@ -48,12 +52,12 @@
 
     public class WorkResult<TResult> : WorkResult, IWorkResult<TResult>
     {
-        public WorkResult(IWorkContract workContract, int threadsUsed, IDateRange dateRange, IDictionary<int, IterationResult<TResult>> results) 
+        public WorkResult(IWorkContract workContract, int threadsUsed, IDateRange dateRange, IEnumerable<IDictionary<int, IterationResult<TResult>>> results) 
             : base(workContract, threadsUsed, dateRange)
         {
             Results = results;
         }
-
-        public IDictionary<int, IterationResult<TResult>> Results { get; }
+        /// <inheritdoc/>
+        public IEnumerable<IDictionary<int, IterationResult<TResult>>> Results { get; }
     }
 }
