@@ -170,10 +170,16 @@
 
             var iterationsByThread = workBalancer.Balance(workContract);
             var tasks = TaskRetriever.GetTasks(func, param, iterationsByThread, cancellationToken);
+            try
+            {
+                StartTasks(tasks);
+                await WaitForAllTasks(tasks);
 
-            StartTasks(tasks);
-            await WaitForAllTasks(tasks);
-            HandleIncompleteTasks(tasks);
+            }
+            catch(Exception ex)
+            {
+                HandleIncompleteTasks(tasks);
+            }
             var endDate = DateTime.Now;
 
             var dateRange = new DateRange(startDate, endDate);
@@ -187,15 +193,15 @@
             var startDate = DateTime.Now;
 
             var iterationsByThread = workBalancer.Balance(workContract);
-            var tasks = IterableDelegateWrapper.WrapAndExecute(func, param, param2, iterationsByThread, cancellationToken);
+            var tasks = TaskRetriever.GetTasks(func, param, param2, iterationsByThread, cancellationToken);
 
             StartTasks(tasks);
-            await WaitForAllTasks(tasks);
+            var results = await WaitForAllTasks(tasks);
             HandleIncompleteTasks(tasks);
             var endDate = DateTime.Now;
 
             var dateRange = new DateRange(startDate, endDate);
-            return await Task.FromResult(new WorkResult<TResult>(workContract, tasks.Count(), dateRange, null));
+            return await Task.FromResult(new WorkResult<TResult>(workContract, tasks.Count(), dateRange, results));
         }
 
         private static void HandleIncompleteTasks(IEnumerable<Task> tasks)
@@ -205,9 +211,9 @@
                 // At this point, the task was cancelled either due to an exception
                 // TODO handle each case differently, for now, it will just fail
 
-                var exceptionalTasks = tasks.Select(e => e.Exception is not null);
-                var cancelledTasks = tasks.Select(e => e.IsCanceled);
-                var incompleteTasks = tasks.Select(e => !e.IsCompletedSuccessfully);
+                var exceptionalTasks = tasks.Where(e => e.Exception is not null).ToArray();
+                var cancelledTasks = tasks.Where(e => e.IsCanceled).ToArray();
+                var incompleteTasks = tasks.Where(e => !e.IsCompletedSuccessfully).ToArray();
             }
         }
 
@@ -230,9 +236,22 @@
             foreach (var task in tasks)
                 task.Start();
         }
+
+        private void StartTasks<TResult>(IEnumerable<Task<IDictionary<int, IterationResult<TResult>>>> tasks)
+        {
+            foreach (var task in tasks)
+                task.Start();
+        }
+
         private async Task WaitForAllTasks(IEnumerable<Task> tasks)
         {
             await Task.WhenAll(tasks);
+        }
+
+        private async Task<IEnumerable<IDictionary<int, IterationResult<TResult>>>> WaitForAllTasks<TResult>(IEnumerable<Task<IDictionary<int, IterationResult<TResult>>>> tasks)
+        {
+            var results = await Task.WhenAll(tasks);
+            return results;
         }
     }
 }
