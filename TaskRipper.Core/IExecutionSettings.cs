@@ -88,7 +88,7 @@
             return this.ExecutionRange.Equals(other.ExecutionRange) &&
                 this.ThreadRange.Equals(other.ThreadRange) &&
                 this.WorkBalancerOptions == other.WorkBalancerOptions &&
-                this.ExecutionEnvironment.Equals(other);
+                this.ExecutionEnvironment.Equals(other.ExecutionEnvironment);
         }
 
         public override bool Equals(object? obj)
