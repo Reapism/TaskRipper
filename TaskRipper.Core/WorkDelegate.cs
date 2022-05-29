@@ -72,6 +72,29 @@ namespace TaskRipper.Core
         public abstract Task ExecuteAsync();
     }
 
+    public abstract class Work<TResult>
+    {
+        public Work(bool? mutateAfterExecution)
+        {
+            MutateAfterExecution = mutateAfterExecution;
+        }
+
+        /// <summary>
+        /// Determines whether the mutation function should execute before 
+        /// or after an iteration of executing the <see cref="ExecutingAction"/>
+        /// delegate.
+        /// <para>If null, it is not applicable in a derrived type.</para>
+        /// </summary>
+        public bool? MutateAfterExecution { get; }
+
+        /// <summary>
+        /// Provides a contract for handling the execution of a delegate, 
+        /// and the execution of the mutating state machine.
+        /// </summary>
+        public abstract TResult Execute();
+        public abstract Task<TResult> ExecuteAsync();
+    }
+
     public class WorkAction : Work
     {
         private readonly Action executingAction;
@@ -199,35 +222,34 @@ namespace TaskRipper.Core
         }
     }
 
-    public class Work<TResult> : Work
+    public class WorkFunction<TResult> : Work<TResult>
     {
         private readonly Func<TResult> executingFunction;
 
-        public Work(Func<TResult> executingFunction, bool mutateAfterExecution)
+        public WorkFunction(Func<TResult> executingFunction, bool mutateAfterExecution)
             : base(mutateAfterExecution)
         {
             this.executingFunction = executingFunction;
         }
 
-        public override void Execute()
+        public override TResult Execute()
         {
-            var ret = executingFunction();
+            return executingFunction();
         }
 
-        public override Task ExecuteAsync()
+        public override Task<TResult> ExecuteAsync()
         {
-            var ret = executingFunction();
-            return Task.CompletedTask;
+            return Task.FromResult(executingFunction());
         }
     }
 
-    public class Work<T, TResult> : Work
+    public class WorkFunction<T, TResult> : Work<TResult>
     {
         private readonly Func<T, TResult> executingFunction;
         private readonly T param;
         private readonly Action<T>? mutatingStateMachine;
 
-        public Work(Func<T, TResult> executingFunction, T param, Action<T>? mutatingStateMachine, bool mutateAfterExecution)
+        public WorkFunction(Func<T, TResult> executingFunction, T param, Action<T>? mutatingStateMachine, bool mutateAfterExecution)
             : base(mutateAfterExecution)
         {
             this.executingFunction = executingFunction;
@@ -235,40 +257,41 @@ namespace TaskRipper.Core
             this.mutatingStateMachine = mutatingStateMachine;
         }
 
-        public override void Execute()
+        public override TResult Execute()
         {
             if (MutateAfterExecution.HasValue && MutateAfterExecution.Value)
             {
-                var ret = executingFunction(param);
+                var result = executingFunction(param);
 
                 if (mutatingStateMachine is not null)
                     mutatingStateMachine(param);
+                return result;
             }
             else
             {
                 if (mutatingStateMachine is not null)
                     mutatingStateMachine(param);
 
-                var ret = executingFunction(param);
+                var result = executingFunction(param);
+                return result;
             }
 
         }
 
-        public override Task ExecuteAsync()
+        public override Task<TResult> ExecuteAsync()
         {
-            Execute();
-            return Task.CompletedTask;
+            return Task.FromResult(Execute());
         }
     }
 
-    public class Work<T1, T2, TResult> : Work
+    public class WorkFunction<T1, T2, TResult> : Work<TResult>
     {
         private readonly Func<T1, T2, TResult> executingFunction;
         private readonly T1 param;
         private readonly T2 param2;
         private readonly Action<T1, T2>? mutatingStateMachine;
 
-        public Work(Func<T1, T2, TResult> executingFunction, T1 param, T2 param2, Action<T1, T2>? mutatingStateMachine, bool mutateAfterExecution)
+        public WorkFunction(Func<T1, T2, TResult> executingFunction, T1 param, T2 param2, Action<T1, T2>? mutatingStateMachine, bool mutateAfterExecution)
             : base(mutateAfterExecution)
         {
             this.executingFunction = executingFunction;
@@ -277,27 +300,30 @@ namespace TaskRipper.Core
             this.mutatingStateMachine = mutatingStateMachine;
         }
 
-        public override void Execute()
+        public override TResult Execute()
         {
             if (MutateAfterExecution.HasValue && MutateAfterExecution.Value)
             {
-                var ret = executingFunction(param, param2);
+                var result = executingFunction(param, param2);
 
                 if (mutatingStateMachine is not null)
                     mutatingStateMachine(param, param2);
+
+                return result;
             }
             else
             {
                 if (mutatingStateMachine is not null)
                     mutatingStateMachine(param, param2);
 
-                var ret = executingFunction(param, param2);
+                var result = executingFunction(param, param2);
+                return result;
             }
         }
 
-        public override Task ExecuteAsync()
+        public override Task<TResult> ExecuteAsync()
         {
-            throw new NotImplementedException();
+            return Task.FromResult(Execute());
         }
     }
 
@@ -311,13 +337,13 @@ namespace TaskRipper.Core
     /// <see cref="Action"/> or <see cref="Func{TResult}"/> delegate families. 
     /// </para>
     /// </summary>
-    public class WorkDelegate : Work
+    public abstract class WorkDelegate
     {
         private readonly object[]? executingDelegateArgs;
+        private readonly bool mutateAfterExecution;
         private readonly DelegateInfoContext delegateInfoContext;
 
         private WorkDelegate(Delegate executingDelegate, object[]? executingDelegateArgs, Delegate? mutatingStateMachineDelegate, bool mutateAfterExecution)
-            : base(mutateAfterExecution)
         {
             // Using multicast delegates introduces so many more concerns.
             // have to check for parameters matching executing delegate params/return type
@@ -325,7 +351,7 @@ namespace TaskRipper.Core
 
             ExecutingDelegate = executingDelegate ?? throw new ArgumentNullException(nameof(executingDelegate));
             MutatingStateMachineDelegate = mutatingStateMachineDelegate;
-            
+            this.mutateAfterExecution = mutateAfterExecution;
             this.executingDelegateArgs = executingDelegateArgs;
 
             delegateInfoContext = ExtractMethodInfo(ExecutingDelegate, executingDelegateArgs);
@@ -359,15 +385,9 @@ namespace TaskRipper.Core
             return context;
         }
 
-        public override void Execute()
-        {
-            throw new NotImplementedException();
-        }
+        public abstract object? Execute();
 
-        public override Task ExecuteAsync()
-        {
-            throw new NotImplementedException();
-        }
+        public abstract Task<object?> ExecuteAsync();
 
         /// <summary>
         /// The delegate that is being executed.
