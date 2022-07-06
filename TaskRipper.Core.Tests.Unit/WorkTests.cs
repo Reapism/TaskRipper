@@ -47,20 +47,5 @@ namespace TaskRipper.Core.Tests.Unit
                 j *= 2;
             }
         };
-
-        public void WorkUsage()
-        {
-            var work = new WorkDelegate(WriteI, new object[] { 1 }, WriteIMSM);
-            var work2 = new WorkDelegate(WriteIPlusJ, new object[] { 0, 0 }, WriteIPlusJMSM);
-            var work3 = new WorkBuilder()
-                .WithContract(WorkContract.Create("", 100))
-                .WithExecutingAction(WriteI)
-                .WithMutatingAction(WriteIMSM)
-                .Optionally()
-                .WithCancellationToken(new CancellationTokenSource().Token)
-                .Build();
-
-            work
-        }
     }
 }
