@@ -1,14 +1,15 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Loggers;
+using System.Runtime.InteropServices;
 
 namespace TaskRipper.Core.Benchmarks
 {
     public class WorkExecutorPerformanceBenchmarks
     {
-        private static Random Random = Random.Shared;
-        private static IWorkExecutor Executor = WorkExecutor.Default;
-        private static ILogger Logger = NullLogger.Instance;
-        private static ILogger ConsoleLogger = BenchmarkDotNet.Loggers.ConsoleLogger.Default;
+        private static readonly Random Random = Random.Shared;
+        private static readonly IWorkExecutor Executor = WorkExecutor.Default;
+        private static readonly ILogger Logger = NullLogger.Instance;
+        private static readonly ILogger ConsoleLogger = BenchmarkDotNet.Loggers.ConsoleLogger.Default;
 
         private const int Ten = 10;
         private const int OneHundred = 100;
@@ -22,9 +23,10 @@ namespace TaskRipper.Core.Benchmarks
         {
             var action = PrintZerosAndOnes();
             var contract = WorkContract.Create(GetExecutionSettings(), action.Method.Name, OneHundredThousand);
+            var workAction = new WorkAction(contract, action);
             var unusedToken = new CancellationTokenSource().Token;
 
-            var result = await Executor.ExecuteAsync(contract, action, unusedToken);
+            var result = await Executor.ExecuteAsync(workAction, unusedToken);
 
             //ConsoleLogger.WriteLine($"Result duration for {action.Method.Name} iterating {contract.Iterations} took {result.Duration}");
         }
@@ -34,9 +36,10 @@ namespace TaskRipper.Core.Benchmarks
         {
             var action = PrintZerosToN(Random.Next(OneHundredThousand));
             var contract = WorkContract.Create(GetExecutionSettings(), action.Method.Name, OneHundredThousand);
+            var workAction = new WorkAction<int>(contract, action, 0, null, false);
             var unusedToken = new CancellationTokenSource().Token;
 
-            var result = await Executor.ExecuteAsync(contract, action, OneHundredThousand, unusedToken);
+            var result = await Executor.ExecuteAsync(workAction, unusedToken);
 
             //ConsoleLogger.WriteLine($"Result duration for {action.Method.Name} iterating {contract.Iterations} took {result.Duration}");
         }
@@ -46,9 +49,10 @@ namespace TaskRipper.Core.Benchmarks
         {
             var func = GetZeroAndOnes();
             var contract = WorkContract.Create(GetExecutionSettings(), func.Method.Name, OneHundredThousand);
+            var workFunction = new WorkFunction<int>(contract, func);
             var unusedToken = new CancellationTokenSource().Token;
 
-            var result = await Executor.ExecuteAsync(contract, func, unusedToken);
+            var result = await Executor.ExecuteAsync(workFunction, unusedToken);
 
             //ConsoleLogger.WriteLine($"Result duration for {func.Method.Name} iterating {contract.Iterations} took {result.Duration}");
         }
@@ -58,9 +62,10 @@ namespace TaskRipper.Core.Benchmarks
         {
             var func = GetZeroToN(OneHundredThousand);
             var contract = WorkContract.Create(GetExecutionSettings(), func.Method.Name, OneHundredThousand);
+            var workFunction = new WorkFunction<int, int>(contract, func, 0, null, false);
             var unusedToken = new CancellationTokenSource().Token;
 
-            var result = await Executor.ExecuteAsync(contract, func, OneHundredThousand, unusedToken);
+            var result = await Executor.ExecuteAsync(workFunction, unusedToken);
 
             //ConsoleLogger.WriteLine($"Result duration for {func.Method.Name} iterating {contract.Iterations} took {result.Duration}");
         }
@@ -157,7 +162,13 @@ namespace TaskRipper.Core.Benchmarks
 
         private Func<int, int> GetZeroToN(int n)
         {
-            return (n) => { return Random.Next(n); };
+            return (x) =>
+            {
+                if (x % 2 == 0)
+                    return Random.Next(n++);
+
+                return Random.Next(n+=2);
+            };
         }
     }
 }
