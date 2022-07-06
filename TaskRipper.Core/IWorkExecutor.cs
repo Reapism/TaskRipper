@@ -1,43 +1,25 @@
 ﻿namespace TaskRipper.Core
 {
-    //TODO add a new Execute overload that takes in a func that helps mutate parameter values before or after an execution of a specific iteration
-    // of running the action/func.
-    // maybe instead of taking in a Action or Func delegate directly into the executor, it takes in a wrapper class
-    // that has the exeuting Action and the action that mutates the value of the parameters if needed.
+    public static class WorkExecutorExtensions
+    {
+        public static Task<IWorkResult> ExecuteAsync<T1, T2>(WorkAction<T1, T2> work,
+            CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+        public static Task<IWorkResult<TResult>> ExecuteAsync<T1, T2, TResult>(
+            WorkFunction<T1, T2, TResult> work, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+    }
     public interface IWorkExecutor
     {
-        /// <summary>
-        /// Executes a cancellable, <see cref="Action"/> asynchronously using information from a <see cref="IWorkContract"/>.
-        /// </summary>
-        /// <param name="workContract">A <see cref="IWorkContract"/> to describe the workload.</param>
-        /// <param name="action">The <see cref="Action"/> to execute.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> used to cancel the action.</param>
-        /// <returns>A <see cref="IWorkResult"/> containing information about the result.</returns>
-        Task<IWorkResult> ExecuteAsync(IWorkContract workContract, Action action, CancellationToken cancellationToken);
+        Task<IWorkResult> ExecuteAsync(WorkAction work, CancellationToken cancellationToken);
+        Task<IWorkResult> ExecuteAsync<T>(WorkAction<T> work, CancellationToken cancellationToken);
+        Task<IWorkResult<TResult>> ExecuteAsync<TResult>(WorkFunction<TResult> work, CancellationToken cancellationToken);
+        Task<IWorkResult<TResult>> ExecuteAsync<T, TResult>(WorkFunction<T, TResult> work, CancellationToken cancellationToken);
 
-        /// <summary>
-        /// Executes a cancellable, <see cref="Action{T}"/> asynchronously using information from a <see cref="IWorkContract"/>.
-        /// </summary>
-        /// <typeparam name="T">A parameter used in the <see cref="Action{T}"/>.</typeparam>
-        /// <param name="workContract">A <see cref="IWorkContract"/> to describe the workload.</param>
-        /// <param name="action">The <see cref="Action{T}"/> to execute.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> used to cancel the action.</param>
-        /// <returns>A <see cref="IWorkResult"/> containing information about the result.</returns>
-        Task<IWorkResult> ExecuteAsync<T>(IWorkContract workContract, Action<T> action, T param, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Executes a cancellable, <see cref="Action{T1, T2}"/> asynchronously using information from a <see cref="IWorkContract"/>.
-        /// </summary>
-        /// <typeparam name="T1">The first parameter used in the <see cref="Action{T1, T2}"/>.</typeparam>
-        /// <typeparam name="T2">The second parameter used in the <see cref="Action{T1, T2}"/>.</typeparam>
-        /// <param name="workContract">A <see cref="IWorkContract"/> to describe the workload.</param>
-        /// <param name="action">The <see cref="Action{T1, T2}"/> to execute.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> used to cancel the action.</param>
-        /// <returns>A <see cref="IWorkResult"/> containing information about the result.</returns>
-        Task<IWorkResult> ExecuteAsync<T1, T2>(IWorkContract workContract, Action<T1, T2> action, T1 param, T2 param2, CancellationToken cancellationToken);
-        Task<IWorkResult<TResult>> ExecuteAsync<TResult>(IWorkContract workContract, Func<TResult> func, CancellationToken cancellationToken);
-        Task<IWorkResult<TResult>> ExecuteAsync<T, TResult>(IWorkContract workContract, Func<T, TResult> func, T param, CancellationToken cancellationToken);
-        Task<IWorkResult<TResult>> ExecuteAsync<T1, T2, TResult>(IWorkContract workContract, Func<T1, T2, TResult> func, T1 param, T2 param2, CancellationToken cancellationToken);
     }
 
     public class WorkExecutor : IWorkExecutor
@@ -60,44 +42,33 @@
             }
         }
 
-        public async Task<IWorkResult> ExecuteAsync(IWorkContract workContract, Action action, CancellationToken cancellationToken)
+        public async Task<IWorkResult> ExecuteAsync(WorkAction work, CancellationToken cancellationToken)
         {
-            return await ExecuteAsyncActionInternal(workContract, action, cancellationToken);
+            return await ExecuteAsyncActionInternal(work, cancellationToken);
         }
 
-        public async Task<IWorkResult> ExecuteAsync<T>(IWorkContract workContract, Action<T> action, T param, CancellationToken cancellationToken)
+        public async Task<IWorkResult> ExecuteAsync<T>(WorkAction<T> work, CancellationToken cancellationToken)
         {
-            return await ExecuteAsyncActionInternal(workContract, action, param, cancellationToken);
+            return await ExecuteAsyncActionInternal(work, cancellationToken);
         }
 
-        public async Task<IWorkResult> ExecuteAsync<T1, T2>(IWorkContract workContract, Action<T1, T2> action, T1 param, T2 param2, CancellationToken cancellationToken)
+
+        public async Task<IWorkResult<TResult>> ExecuteAsync<TResult>(WorkFunction<TResult> work, CancellationToken cancellationToken)
         {
-            return await ExecuteAsyncActionInternal(workContract, action, param, param2, cancellationToken);
+            return await ExecuteAsyncFuncInternal(work, cancellationToken);
         }
 
-        public async Task<IWorkResult<TResult>> ExecuteAsync<TResult>(IWorkContract workContract, Func<TResult> func, CancellationToken cancellationToken)
+        public async Task<IWorkResult<TResult>> ExecuteAsync<T, TResult>(WorkFunction<T, TResult> work, CancellationToken cancellationToken)
         {
-            return await ExecuteAsyncFuncInternal(workContract, func, cancellationToken);
+            return await ExecuteAsyncFuncInternal(work, cancellationToken);
         }
 
-        public async Task<IWorkResult<TResult>> ExecuteAsync<T, TResult>(IWorkContract workContract, Func<T, TResult> func, T param, CancellationToken cancellationToken)
+        private async Task<IWorkResult> ExecuteAsyncActionInternal(WorkAction work, CancellationToken cancellationToken)
         {
-            return await ExecuteAsyncFuncInternal(workContract, func, param, cancellationToken);
-        }
-
-        public async Task<IWorkResult<TResult>> ExecuteAsync<T1, T2, TResult>(IWorkContract workContract, Func<T1, T2, TResult> func, T1 param, T2 param2, CancellationToken cancellationToken)
-        {
-            return await ExecuteAsyncFuncInternal(workContract, func, param, param2, cancellationToken);
-        }
-
-        private async Task<IWorkResult> ExecuteAsyncActionInternal(IWorkContract workContract, Action action, CancellationToken cancellationToken)
-        {
-            ValidateContract(workContract, action);
-
             var startDate = DateTime.Now;
 
-            var iterationsByThread = workBalancer.Balance(workContract);
-            var tasks = TaskRetriever.GetTasks(action, iterationsByThread, cancellationToken);
+            var iterationsByThread = workBalancer.Balance(work.WorkContract);
+            var tasks = TaskRetriever.GetWrappedWorkActionTasks(work, iterationsByThread, cancellationToken);
 
             StartTasks(tasks);
             await WaitForAllTasks(tasks);
@@ -105,17 +76,15 @@
             var endDate = DateTime.Now;
 
             var dateRange = new DateRange(startDate, endDate);
-            return await Task.FromResult(new WorkResult(workContract, tasks.Count(), dateRange));
+            return await Task.FromResult(new WorkResult(work.WorkContract, tasks.Count(), dateRange));
         }
 
-        private async Task<IWorkResult> ExecuteAsyncActionInternal<T>(IWorkContract workContract, Action<T> action, T param, CancellationToken cancellationToken)
+        private async Task<IWorkResult> ExecuteAsyncActionInternal<T>(WorkAction<T> work, CancellationToken cancellationToken)
         {
-            ValidateContract(workContract, action);
-
             var startDate = DateTime.Now;
 
-            var iterationsByThread = workBalancer.Balance(workContract);
-            var tasks = TaskRetriever.GetTasks(action, param, iterationsByThread, cancellationToken);
+            var iterationsByThread = workBalancer.Balance(work.WorkContract);
+            var tasks = TaskRetriever.GetWrappedWorkActionTasks(work, iterationsByThread, cancellationToken);
 
             StartTasks(tasks);
             await WaitForAllTasks(tasks);
@@ -123,17 +92,17 @@
             var endDate = DateTime.Now;
 
             var dateRange = new DateRange(startDate, endDate);
-            return await Task.FromResult(new WorkResult(workContract, tasks.Count(), dateRange));
+            return await Task.FromResult(new WorkResult(work.WorkContract, tasks.Count(), dateRange));
         }
 
-        private async Task<IWorkResult> ExecuteAsyncActionInternal<T1, T2>(IWorkContract workContract, Action<T1, T2> action, T1 param, T2 param2, CancellationToken cancellationToken)
-        {
-            ValidateContract(workContract, action);
+      
 
+        private async Task<IWorkResult<TResult>> ExecuteAsyncFuncInternal<TResult>(WorkFunction<TResult> work, CancellationToken cancellationToken)
+        {
             var startDate = DateTime.Now;
 
-            var iterationsByThread = workBalancer.Balance(workContract);
-            var tasks = TaskRetriever.GetTasks(action, param, param2, iterationsByThread, cancellationToken);
+            var iterationsByThread = workBalancer.Balance(work.WorkContract);
+            var tasks = TaskRetriever.GetWrappedWorkActionTasks(work, iterationsByThread, cancellationToken);
 
             StartTasks(tasks);
             await WaitForAllTasks(tasks);
@@ -141,67 +110,29 @@
             var endDate = DateTime.Now;
 
             var dateRange = new DateRange(startDate, endDate);
-            return await Task.FromResult(new WorkResult(workContract, tasks.Count(), dateRange));
+            return await Task.FromResult(new WorkResult<TResult>(work.WorkContract, tasks.Count(), dateRange, null));
         }
 
-        private async Task<IWorkResult<TResult>> ExecuteAsyncFuncInternal<TResult>(IWorkContract workContract, Func<TResult> func, CancellationToken cancellationToken)
+        private async Task<IWorkResult<TResult>> ExecuteAsyncFuncInternal<T, TResult>(WorkFunction<T, TResult> work, CancellationToken cancellationToken)
         {
-            ValidateContract(workContract, func);
-
             var startDate = DateTime.Now;
 
-            var iterationsByThread = workBalancer.Balance(workContract);
-            var tasks = TaskRetriever.GetTasks(func, iterationsByThread, cancellationToken);
-
-            StartTasks(tasks);
-            await WaitForAllTasks(tasks);
-            HandleIncompleteTasks(tasks);
-            var endDate = DateTime.Now;
-
-            var dateRange = new DateRange(startDate, endDate);
-            return await Task.FromResult(new WorkResult<TResult>(workContract, tasks.Count(), dateRange, null));
-        }
-
-        private async Task<IWorkResult<TResult>> ExecuteAsyncFuncInternal<T, TResult>(IWorkContract workContract, Func<T, TResult> func, T param, CancellationToken cancellationToken)
-        {
-            ValidateContract(workContract, func);
-
-            var startDate = DateTime.Now;
-
-            var iterationsByThread = workBalancer.Balance(workContract);
-            var tasks = TaskRetriever.GetTasks(func, param, iterationsByThread, cancellationToken);
+            var iterationsByThread = workBalancer.Balance(work.WorkContract);
+            var tasks = TaskRetriever.GetWrappedWorkActionTasks(work, iterationsByThread, cancellationToken);
             try
             {
                 StartTasks(tasks);
                 await WaitForAllTasks(tasks);
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 HandleIncompleteTasks(tasks);
             }
             var endDate = DateTime.Now;
 
             var dateRange = new DateRange(startDate, endDate);
-            return await Task.FromResult(new WorkResult<TResult>(workContract, tasks.Count(), dateRange, null));
-        }
-
-        private async Task<IWorkResult<TResult>> ExecuteAsyncFuncInternal<T1, T2, TResult>(IWorkContract workContract, Func<T1, T2, TResult> func, T1 param, T2 param2, CancellationToken cancellationToken)
-        {
-            ValidateContract(workContract, func);
-
-            var startDate = DateTime.Now;
-
-            var iterationsByThread = workBalancer.Balance(workContract);
-            var tasks = TaskRetriever.GetTasks(func, param, param2, iterationsByThread, cancellationToken);
-
-            StartTasks(tasks);
-            var results = await WaitForAllTasks(tasks);
-            HandleIncompleteTasks(tasks);
-            var endDate = DateTime.Now;
-
-            var dateRange = new DateRange(startDate, endDate);
-            return await Task.FromResult(new WorkResult<TResult>(workContract, tasks.Count(), dateRange, results));
+            return await Task.FromResult(new WorkResult<TResult>(work.WorkContract, tasks.Count(), dateRange, null));
         }
 
         private static void HandleIncompleteTasks(IEnumerable<Task> tasks)
@@ -214,20 +145,6 @@
                 var exceptionalTasks = tasks.Where(e => e.Exception is not null).ToArray();
                 var cancelledTasks = tasks.Where(e => e.IsCanceled).ToArray();
                 var incompleteTasks = tasks.Where(e => !e.IsCompletedSuccessfully).ToArray();
-            }
-        }
-
-        private static void ValidateContract<T>(IWorkContract workContract, T @delegate)
-            where T : Delegate
-        {
-            if (workContract is null)
-            {
-                throw new ArgumentNullException(nameof(workContract));
-            }
-
-            if (@delegate is null)
-            {
-                throw new ArgumentNullException(nameof(@delegate));
             }
         }
 
