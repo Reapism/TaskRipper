@@ -152,7 +152,7 @@ namespace TaskRipper.Core.Benchmarks
 
         private Action<int> PrintZerosToN(int n)
         {
-            return (n) => Logger.WriteLine(LogKind.Default, n++.ToString());
+            return (x) => Logger.WriteLine(LogKind.Default, n++.ToString());
         }
 
         private Func<int> GetZeroAndOnes()

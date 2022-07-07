@@ -4,7 +4,7 @@ namespace TaskRipper.Core.Benchmarks
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static void Main()
         {
             BenchmarkRunner.Run<WorkExecutorPerformanceBenchmarks>();
         }

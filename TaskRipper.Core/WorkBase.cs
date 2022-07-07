@@ -34,11 +34,15 @@
             if (MutateAfterExecution)
             {
                 ExecutingAction(Param);
-                MutatingStateMachine(Param);
+                if (MutatingStateMachine is not null)
+                    MutatingStateMachine(Param);
+
                 return;
             }
 
-            MutatingStateMachine(Param);
+            if (MutatingStateMachine is not null)
+                MutatingStateMachine(Param);
+
             ExecutingAction(Param);
         }
     }
@@ -64,11 +68,14 @@
             if (MutateAfterExecution)
             {
                 ExecutingAction(Param, Param2);
-                MutatingStateMachine(Param, Param2);
+                if (MutatingStateMachine is not null)
+                    MutatingStateMachine(Param, Param2);
                 return;
             }
 
-            MutatingStateMachine(Param, Param2);
+            if (MutatingStateMachine is not null)
+                MutatingStateMachine(Param, Param2);
+
             ExecutingAction(Param, Param2);
         }
     }
@@ -108,11 +115,14 @@
             if (MutateAfterExecution)
             {
                 TResult? resultBeforeMutation = ExecutingFunction(Param);
-                MutatingStateMachine(Param);
+                if (MutatingStateMachine is not null)
+                    MutatingStateMachine(Param);
+
                 return resultBeforeMutation;
             }
 
-            MutatingStateMachine(Param);
+            if (MutatingStateMachine is not null)
+                MutatingStateMachine(Param);
             TResult? resultAfterMutation = ExecutingFunction(Param);
             return resultAfterMutation;
         }
@@ -139,11 +149,15 @@
             if (MutateAfterExecution)
             {
                 TResult? resultBeforeMutation = ExecutingFunction(Param, Param2);
-                MutatingStateMachine(Param, Param2);
+                if (MutatingStateMachine is not null)
+                    MutatingStateMachine(Param, Param2);
+
                 return resultBeforeMutation;
             }
 
-            MutatingStateMachine(Param, Param2);
+            if (MutatingStateMachine is not null)
+                MutatingStateMachine(Param, Param2);
+
             TResult? resultAfterMutation = ExecutingFunction(Param, Param2);
             return resultAfterMutation;
         }

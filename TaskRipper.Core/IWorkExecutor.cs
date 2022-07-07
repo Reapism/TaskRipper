@@ -13,13 +13,13 @@
             throw new NotImplementedException();
         }
     }
+
     public interface IWorkExecutor
     {
         Task<IWorkResult> ExecuteAsync(WorkAction work, CancellationToken cancellationToken);
         Task<IWorkResult> ExecuteAsync<T>(WorkAction<T> work, CancellationToken cancellationToken);
         Task<IWorkResult<TResult>> ExecuteAsync<TResult>(WorkFunction<TResult> work, CancellationToken cancellationToken);
         Task<IWorkResult<TResult>> ExecuteAsync<T, TResult>(WorkFunction<T, TResult> work, CancellationToken cancellationToken);
-
     }
 
     public class WorkExecutor : IWorkExecutor
@@ -51,7 +51,6 @@
         {
             return await ExecuteAsyncActionInternal(work, cancellationToken);
         }
-
 
         public async Task<IWorkResult<TResult>> ExecuteAsync<TResult>(WorkFunction<TResult> work, CancellationToken cancellationToken)
         {
@@ -95,7 +94,7 @@
             return await Task.FromResult(new WorkResult(work.WorkContract, tasks.Count(), dateRange));
         }
 
-      
+
 
         private async Task<IWorkResult<TResult>> ExecuteAsyncFuncInternal<TResult>(WorkFunction<TResult> work, CancellationToken cancellationToken)
         {
@@ -105,12 +104,12 @@
             var tasks = TaskRetriever.GetWrappedWorkActionTasks(work, iterationsByThread, cancellationToken);
 
             StartTasks(tasks);
-            await WaitForAllTasks(tasks);
+            var results = await WaitForAllTasks(tasks);
             HandleIncompleteTasks(tasks);
             var endDate = DateTime.Now;
 
             var dateRange = new DateRange(startDate, endDate);
-            return await Task.FromResult(new WorkResult<TResult>(work.WorkContract, tasks.Count(), dateRange, null));
+            return await Task.FromResult(new WorkResult<TResult>(work.WorkContract, tasks.Count(), dateRange, results));
         }
 
         private async Task<IWorkResult<TResult>> ExecuteAsyncFuncInternal<T, TResult>(WorkFunction<T, TResult> work, CancellationToken cancellationToken)
@@ -119,20 +118,18 @@
 
             var iterationsByThread = workBalancer.Balance(work.WorkContract);
             var tasks = TaskRetriever.GetWrappedWorkActionTasks(work, iterationsByThread, cancellationToken);
-            try
-            {
-                StartTasks(tasks);
-                await WaitForAllTasks(tasks);
 
-            }
-            catch (Exception ex)
-            {
-                HandleIncompleteTasks(tasks);
-            }
+            StartTasks(tasks);
+            var results = await WaitForAllTasks(tasks);
+
+            HandleIncompleteTasks(tasks);
+
             var endDate = DateTime.Now;
 
             var dateRange = new DateRange(startDate, endDate);
-            return await Task.FromResult(new WorkResult<TResult>(work.WorkContract, tasks.Count(), dateRange, null));
+            return await Task.FromResult(new WorkResult<TResult>(work.WorkContract, tasks.Count(), dateRange, results));
+
+
         }
 
         private static void HandleIncompleteTasks(IEnumerable<Task> tasks)

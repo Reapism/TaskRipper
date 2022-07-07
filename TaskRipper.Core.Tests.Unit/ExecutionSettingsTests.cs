@@ -7,11 +7,22 @@ namespace TaskRipper.Core.Tests.Unit
     public class ExecutionSettingsTests
     {
         [Theory]
-        [InlineData(1, 10, 1, 1000, 1, 10, 1, 1000, WorkBalancerOptions.Optimize, WorkBalancerOptions.Optimize, true)]
+
+        [InlineData(1, 10, 1, 10, 1, 10, 1, 10, WorkBalancerOptions.Optimize, WorkBalancerOptions.Optimize, true)]
+        [InlineData(2, 10, 2, 10, 1, 10, 1, 10, WorkBalancerOptions.Optimize, WorkBalancerOptions.Optimize, true)]
+
+        [InlineData(1, 10, 1, 1000, 1, 10, 1, 1000, WorkBalancerOptions.Optimize, WorkBalancerOptions.Optimize, false)]
         [InlineData(2, 10, 1, 1000, 1, 10, 1, 1000, WorkBalancerOptions.Optimize, WorkBalancerOptions.Optimize, false)]
         [InlineData(1, 10, 2, 1000, 1, 10, 1, 1000, WorkBalancerOptions.Optimize, WorkBalancerOptions.Optimize, false)]
         [InlineData(1, 10, 1, 1000, 2, 10, 1, 1000, WorkBalancerOptions.Optimize, WorkBalancerOptions.Optimize, false)]
         [InlineData(1, 10, 1, 1000, 1, 10, 2, 1000, WorkBalancerOptions.Optimize, WorkBalancerOptions.Optimize, false)]
+
+        [InlineData(1, 10, 1, 1000, 1, 10, 1, 1000, WorkBalancerOptions.Optimize, WorkBalancerOptions.Medium, false)]
+        [InlineData(2, 10, 1, 1000, 1, 10, 1, 1000, WorkBalancerOptions.Optimize, WorkBalancerOptions.Medium, false)]
+        [InlineData(1, 10, 2, 1000, 1, 10, 1, 1000, WorkBalancerOptions.Optimize, WorkBalancerOptions.Medium, false)]
+        [InlineData(1, 10, 1, 1000, 2, 10, 1, 1000, WorkBalancerOptions.Optimize, WorkBalancerOptions.Medium, false)]
+        [InlineData(1, 10, 1, 1000, 1, 10, 2, 1000, WorkBalancerOptions.Optimize, WorkBalancerOptions.Medium, false)]
+
         [InlineData(1, 10, 1, 1000, 1, 10, 1, 1000, WorkBalancerOptions.Optimize, WorkBalancerOptions.Min, false)]
         public void ShouldBeEqual(int minThread1, int maxThread1, int minThread2, int maxThread2, int minExecution1, int maxExecution1, int minExecution2, int maxExecution2, WorkBalancerOptions workBalancerOptions1, WorkBalancerOptions workBalancerOptions2, bool shouldBeEqual)
         {

@@ -12,7 +12,10 @@
         {
             ExecutionSettings = executionSettings ?? throw new ArgumentNullException(nameof(executionSettings));
             Description = description ?? throw new ArgumentNullException(nameof(description));
-            Iterations = iterations > 0 ? iterations : 1;
+            if (iterations < 1)
+                throw new ArgumentOutOfRangeException(nameof(iterations));
+
+            Iterations = iterations;
         }
 
         public string Description { get; }

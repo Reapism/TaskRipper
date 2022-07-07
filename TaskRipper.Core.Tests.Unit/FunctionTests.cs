@@ -23,7 +23,9 @@ namespace TaskRipper.Core.Tests.Unit
             var contract = WorkContract.Create(GetExecutionSettings(), "TEST", 1000);
             var executor = WorkExecutor.Default;
             var cancellationToken = new CancellationTokenSource().Token;
-            var result = await executor.ExecuteAsync(contract, IsNumberPrime(), 1, cancellationToken);
+            Func<int, bool> func = GetIsNumberPrimeFunction();
+            var workFunction = new WorkFunction<int, bool>(contract, func, 1, null, false);
+            var result = await executor.ExecuteAsync(workFunction, cancellationToken);
             
             // expectations
             result.Duration.Should().NotBe(default);
@@ -33,21 +35,21 @@ namespace TaskRipper.Core.Tests.Unit
             result.Results.Sum(e => e.Values.Count).Should().Be(result.WorkContract.Iterations);
         }
 
-        private Func<int, bool> IsNumberPrime()
-            => new((number) =>
-        {
-            if (number <= 1) return false;
-            if (number == 2) return true;
-            if (number % 2 == 0) return false;
+        private Func<int, bool> GetIsNumberPrimeFunction()
+            => number =>
+            {
+                if (number <= 1) return false;
+                if (number == 2) return true;
+                if (number % 2 == 0) return false;
 
-            var boundary = (int)Math.Floor(Math.Sqrt(number));
+                var boundary = (int)Math.Floor(Math.Sqrt(number));
 
-            for (int i = 3; i <= boundary; i += 2)
-                if (number % i == 0)
-                    return false;
+                for (int i = 3; i <= boundary; i += 2)
+                    if (number % i == 0)
+                        return false;
 
-            return true;
-        });
+                return true;
+            };
 
 
         private IExecutionSettings GetExecutionSettings()

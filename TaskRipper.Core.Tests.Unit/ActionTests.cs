@@ -22,7 +22,8 @@ namespace TaskRipper.Core.Tests.Unit
             var actionContract = new WorkContract(GetExecutionSettings(), "Test", 1010);
             var executor = WorkExecutor.Default;
             var cancellationToken = new CancellationTokenSource().Token;
-            var result = await executor.ExecuteAsync(actionContract, PrintOnesAndZeros(), cancellationToken);
+            var workAction = new WorkAction(actionContract, () => PrintOnesAndZeros());
+            var result = await executor.ExecuteAsync(workAction, cancellationToken);
 
             result.ThreadsUsed.Should().Be(actionContract.ExecutionSettings.ExecutionEnvironment.ThreadCount);
         }
@@ -33,7 +34,8 @@ namespace TaskRipper.Core.Tests.Unit
             var actionContract = new WorkContract(GetExecutionSettings(), "Test", 1010);
             var executor = WorkExecutor.Default;
             var cancellationToken = new CancellationTokenSource().Token;
-            var result = await executor.ExecuteAsync(actionContract, Print1ToA(), 1, cancellationToken);
+            var workAction = new WorkAction<int>(actionContract, (a) => Print1ToA(), 1, null, false);
+            var result = await executor.ExecuteAsync(workAction, cancellationToken);
 
             result.ThreadsUsed.Should().Be(actionContract.ExecutionSettings.ExecutionEnvironment.ThreadCount);
         }
@@ -44,7 +46,8 @@ namespace TaskRipper.Core.Tests.Unit
             var actionContract = new WorkContract(GetExecutionSettings(), "Test", 1010);
             var executor = WorkExecutor.Default;
             var cancellationToken = new CancellationTokenSource().Token;
-            var result = await executor.ExecuteAsync(actionContract, Print1ToAInterlocked(), 1, cancellationToken);
+            var workAction = new WorkAction<int>(actionContract, (a) => Print1ToAInterlocked(), 1, null, false);
+            var result = await executor.ExecuteAsync(workAction, cancellationToken);
 
             result.ThreadsUsed.Should().Be(actionContract.ExecutionSettings.ExecutionEnvironment.ThreadCount);
         }
@@ -54,7 +57,8 @@ namespace TaskRipper.Core.Tests.Unit
             var actionContract = new WorkContract(GetExecutionSettings(), "Test", 1010);
             var executor = WorkExecutor.Default;
             var cancellationToken = new CancellationTokenSource().Token;
-            var result = await executor.ExecuteAsync(actionContract, PrintOnesAndZeros(), cancellationToken);
+            var workAction = new WorkAction(actionContract, () => Print1ToAInterlocked());
+            var result = await executor.ExecuteAsync(workAction, cancellationToken);
 
             result.ThreadsUsed.Should().Be(actionContract.ExecutionSettings.ExecutionEnvironment.ThreadCount);
         }
@@ -75,8 +79,8 @@ namespace TaskRipper.Core.Tests.Unit
             var executor = WorkExecutor.Default;
             var source = new CancellationTokenSource();
             var cancellationToken = source.Token;
-
-            var result = executor.ExecuteAsync(actionContract, PrintOnesAndZeros(), cancellationToken);
+            var workAction = new WorkAction(actionContract, () => PrintOnesAndZeros());
+            var result = executor.ExecuteAsync(workAction, cancellationToken);
             source.CancelAfter(10);
             await Task.Delay(10);
 
