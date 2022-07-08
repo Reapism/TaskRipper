@@ -25,7 +25,10 @@ namespace TaskRipper.Core.Tests.Unit
             var workAction = new WorkAction(actionContract, () => PrintOnesAndZeros());
             var result = await executor.ExecuteAsync(workAction, cancellationToken);
 
+            result.Should().NotBeNull();
             result.ThreadsUsed.Should().Be(actionContract.ExecutionSettings.ExecutionEnvironment.ThreadCount);
+            result.Duration.Should().BeGreaterThan(TimeSpan.FromTicks(1));
+            result.WorkContract.Should().Be(actionContract);
         }
 
         [Fact]
@@ -37,7 +40,10 @@ namespace TaskRipper.Core.Tests.Unit
             var workAction = new WorkAction<int>(actionContract, (a) => Print1ToA(), 1, null, false);
             var result = await executor.ExecuteAsync(workAction, cancellationToken);
 
+            result.Should().NotBeNull();
             result.ThreadsUsed.Should().Be(actionContract.ExecutionSettings.ExecutionEnvironment.ThreadCount);
+            result.Duration.Should().BeGreaterThan(TimeSpan.FromTicks(1));
+            result.WorkContract.Should().Be(actionContract);
         }
 
         [Fact]
@@ -49,7 +55,10 @@ namespace TaskRipper.Core.Tests.Unit
             var workAction = new WorkAction<int>(actionContract, (a) => Print1ToAInterlocked(), 1, null, false);
             var result = await executor.ExecuteAsync(workAction, cancellationToken);
 
+            result.Should().NotBeNull();
             result.ThreadsUsed.Should().Be(actionContract.ExecutionSettings.ExecutionEnvironment.ThreadCount);
+            result.Duration.Should().BeGreaterThan(TimeSpan.FromTicks(1));
+            result.WorkContract.Should().Be(actionContract);
         }
 
         public async Task ExecuteCustomDelegateWithAction()
@@ -73,7 +82,7 @@ namespace TaskRipper.Core.Tests.Unit
         //[InlineData(1000000, Skip = "Inconclusive, works by itself, not running tests in group")]
         public async Task ExecuteActionCanBeCancelled(int iterations)
         {
-            // This test relies on timing of methods to recieve cancellation source.
+            // This test relies on timing of methods to receive cancellation source.
             // Using as little resources as possible to confirm cancellation works across many threads.
             var actionContract = new WorkContract(GetExecutionSettings(), "Test", iterations);
             var executor = WorkExecutor.Default;

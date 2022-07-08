@@ -24,15 +24,19 @@ namespace TaskRipper.Core.Tests.Unit
             var executor = WorkExecutor.Default;
             var cancellationToken = new CancellationTokenSource().Token;
             Func<int, bool> func = GetIsNumberPrimeFunction();
-            var workFunction = new WorkFunction<int, bool>(contract, func, 1, null, false);
+            Action<int> mutatingStateMche = GetIncrementalMutatingStateMachine();
+            var workFunction = new WorkFunction<int, bool>(contract, func, 1, GetIncrementalMutatingStateMachine(), false);
             var result = await executor.ExecuteAsync(workFunction, cancellationToken);
-            
+
             // expectations
+            result.Should().NotBeNull();
+            result.ThreadsUsed.Should().Be(contract.ExecutionSettings.ExecutionEnvironment.ThreadCount);
+            result.Duration.Should().BeGreaterThan(TimeSpan.FromTicks(1));
             result.Duration.Should().NotBe(default);
             result.WorkContract.Should().Be(contract);
-            result.ThreadsUsed.Should().Be(contract.ExecutionSettings.ExecutionEnvironment.ThreadCount);
+
             result.Results.Count().Should().Be(result.ThreadsUsed);
-            result.Results.Sum(e => e.Values.Count).Should().Be(result.WorkContract.Iterations);
+            result.Results.Sum(e => e.Count()).Should().Be(result.WorkContract.Iterations);
         }
 
         private Func<int, bool> GetIsNumberPrimeFunction()
@@ -51,6 +55,13 @@ namespace TaskRipper.Core.Tests.Unit
                 return true;
             };
 
+        private Action<int> GetIncrementalMutatingStateMachine()
+        {
+            return (a) =>
+            {
+                a++;
+            };
+        }
 
         private IExecutionSettings GetExecutionSettings()
         {
