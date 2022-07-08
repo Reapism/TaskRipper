@@ -3,9 +3,6 @@
     public interface IWorkBalancer
     {
         IDictionary<int, int> Balance(IWorkContract workContract);
-        // TODO generate method that will execute the task
-        //WorkBalancerOptions ComputeBestWorkBalancerOptions<T>(IWorkContract workContract, IWorkExecutor workExecutor, T @delegate, CancellationToken cancellationToken, object[] args)
-            //where T : Delegate;
     }
 
     public class WorkBalancer : IWorkBalancer
