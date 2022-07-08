@@ -94,8 +94,6 @@
             return await Task.FromResult(new WorkResult(work.WorkContract, tasks.Count(), dateRange));
         }
 
-
-
         private async Task<IWorkResult<TResult>> ExecuteAsyncFuncInternal<TResult>(WorkFunction<TResult> work, CancellationToken cancellationToken)
         {
             var startDate = DateTime.Now;
@@ -128,8 +126,6 @@
 
             var dateRange = new DateRange(startDate, endDate);
             return await Task.FromResult(new WorkResult<TResult>(work.WorkContract, tasks.Count(), dateRange, results));
-
-
         }
 
         private static void HandleIncompleteTasks(IEnumerable<Task> tasks)
@@ -162,7 +158,7 @@
             await Task.WhenAll(tasks);
         }
 
-        private async Task<IEnumerable<IDictionary<int, IterationResult<TResult>>>> WaitForAllTasks<TResult>(IEnumerable<Task<IDictionary<int, IterationResult<TResult>>>> tasks)
+        private async Task<IEnumerable<IEnumerable<IterationResult<TResult>>>> WaitForAllTasks<TResult>(IEnumerable<Task<IEnumerable<IterationResult<TResult>>>> tasks)
         {
             var results = await Task.WhenAll(tasks);
             return results;

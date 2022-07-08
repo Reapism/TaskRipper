@@ -40,9 +40,9 @@
             return tasks;
         }
 
-        internal static IEnumerable<Task<IDictionary<int, IterationResult<TResult>>>> GetWrappedWorkActionTasks<TResult>(WorkFunction<TResult> work, IDictionary<int, int> iterationsByThread, CancellationToken cancellationToken)
+        internal static IEnumerable<Task<IEnumerable<IterationResult<TResult>>>> GetWrappedWorkActionTasks<TResult>(WorkFunction<TResult> work, IDictionary<int, int> iterationsByThread, CancellationToken cancellationToken)
         {
-            var tasks = new List<Task<IDictionary<int, IterationResult<TResult>>>>();
+            var tasks = new List<Task<IEnumerable<IterationResult<TResult>>>>();
 
             for (int i = 0; i < iterationsByThread.Count; i++)
             {
@@ -52,9 +52,9 @@
 
             return tasks;
         }
-        internal static IEnumerable<Task<IDictionary<int, IterationResult<TResult>>>> GetWrappedWorkActionTasks<T, TResult>(WorkFunction<T, TResult> work, IDictionary<int, int> iterationsByThread, CancellationToken cancellationToken)
+        internal static IEnumerable<Task<IEnumerable<IterationResult<TResult>>>> GetWrappedWorkActionTasks<T, TResult>(WorkFunction<T, TResult> work, IDictionary<int, int> iterationsByThread, CancellationToken cancellationToken)
         {
-            var tasks = new List<Task<IDictionary<int, IterationResult<TResult>>>>();
+            var tasks = new List<Task<IEnumerable<IterationResult<TResult>>>>();
 
             for (int i = 0; i < iterationsByThread.Count; i++)
             {
@@ -65,9 +65,9 @@
             return tasks;
         }
 
-        internal static IEnumerable<Task<IDictionary<int, IterationResult<TResult>>>> GetWrappedWorkActionTasks<T1, T2, TResult>(WorkFunction<T1, T2, TResult> work, IDictionary<int, int> iterationsByThread, CancellationToken cancellationToken)
+        internal static IEnumerable<Task<IEnumerable<IterationResult<TResult>>>> GetWrappedWorkActionTasks<T1, T2, TResult>(WorkFunction<T1, T2, TResult> work, IDictionary<int, int> iterationsByThread, CancellationToken cancellationToken)
         {
-            var tasks = new List<Task<IDictionary<int, IterationResult<TResult>>>>();
+            var tasks = new List<Task<IEnumerable<IterationResult<TResult>>>>();
 
             for (int i = 0; i < iterationsByThread.Count; i++)
             {
