@@ -14,7 +14,7 @@
 
         private IDictionary<int, int> BalanceInternal(IWorkContract workContract)
         {
-            ValidateParameters(workContract);
+            workContract.ValidateContract();
 
             var workBalancerFunction = GetWorkBalancerFunction(workContract.ExecutionSettings.WorkBalancerOptions);
             var iterationsByThread = workBalancerFunction.Invoke(workContract);
@@ -158,13 +158,6 @@
             iterationsByThread.Add(index, tuple.Quotient + tuple.Remainder);
 
             return iterationsByThread;
-        }
-
-        private void ValidateParameters(IWorkContract workContract)
-        {
-            var isInRange = workContract.ExecutionSettings.ExecutionRange.IsInRange(workContract.Iterations);
-            if (!isInRange)
-                throw new IterationsOutOfRangeException(workContract, workContract.Iterations, nameof(workContract.Iterations));
         }
 
         private void RemoveEmptyEntries(IDictionary<int, int> keyValuePairs)
