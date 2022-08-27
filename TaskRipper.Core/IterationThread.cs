@@ -2,13 +2,13 @@
 {
     public class IterationThread
     {
-        public IterationThread(int threadNumber, int iterations)
+        public IterationThread(short threadNumber, int iterations)
         {
             ThreadNumber = threadNumber;
             Iterations = iterations;
         }
 
-        public int ThreadNumber { get; set; }
+        public short ThreadNumber { get; set; }
         public int Iterations { get; set; }
     }
 }

@@ -6,7 +6,7 @@
         {
             var tasks = new List<Task>();
             
-            for (int i = 0; i < iterationsByThread.Count; i++)
+            for (short i = 0; i < iterationsByThread.Count; i++)
             {
                 var iterableTask = IterableDelegateWrapper.Wrap(work, new IterationThread(i, iterationsByThread[i]), cancellationToken);
                 tasks.Add(iterableTask);
@@ -19,7 +19,7 @@
         {
             var tasks = new List<Task>();
 
-            for (int i = 0; i < iterationsByThread.Count; i++)
+            for (short i = 0; i < iterationsByThread.Count; i++)
             {
                 var iterableTask = IterableDelegateWrapper.Wrap(work, new IterationThread(i, iterationsByThread[i]), cancellationToken);
                 tasks.Add(iterableTask);
@@ -31,7 +31,7 @@
         {
             var tasks = new List<Task>();
 
-            for (int i = 0; i < iterationsByThread.Count; i++)
+            for (short i = 0; i < iterationsByThread.Count; i++)
             {
                 var iterableTask = IterableDelegateWrapper.Wrap(work, new IterationThread(i, iterationsByThread[i]), cancellationToken);
                 tasks.Add(iterableTask);
@@ -44,7 +44,7 @@
         {
             var tasks = new List<Task<IEnumerable<IterationResult<TResult>>>>();
 
-            for (int i = 0; i < iterationsByThread.Count; i++)
+            for (short i = 0; i < iterationsByThread.Count; i++)
             {
                 var iterableTask = IterableDelegateWrapper.Wrap(work, new IterationThread(i, iterationsByThread[i]), cancellationToken);
                 tasks.Add(iterableTask);
@@ -56,7 +56,7 @@
         {
             var tasks = new List<Task<IEnumerable<IterationResult<TResult>>>>();
 
-            for (int i = 0; i < iterationsByThread.Count; i++)
+            for (short i = 0; i < iterationsByThread.Count; i++)
             {
                 var iterableTask = IterableDelegateWrapper.Wrap(work, new IterationThread(i, iterationsByThread[i]), cancellationToken);
                 tasks.Add(iterableTask);
@@ -69,7 +69,7 @@
         {
             var tasks = new List<Task<IEnumerable<IterationResult<TResult>>>>();
 
-            for (int i = 0; i < iterationsByThread.Count; i++)
+            for (short i = 0; i < iterationsByThread.Count; i++)
             {
                 var iterableTask = IterableDelegateWrapper.Wrap(work, new IterationThread(i, iterationsByThread[i]), cancellationToken);
                 tasks.Add(iterableTask);
