@@ -10,7 +10,9 @@
         /// <returns></returns>
         public static bool IsInRange(this Range range, Index value)
         {
-            return value.Value >= range.Start.Value && value.Value < range.End.Value;
+            var inStartRange = value.Value >= range.Start.Value;
+            var inEndRange = value.Value <= range.End.Value;
+            return inStartRange && inEndRange;
         }
     }
 }
