@@ -25,7 +25,7 @@
     public class WorkExecutor : IWorkExecutor
     {
         private readonly IWorkBalancer workBalancer;
-        private static IWorkExecutor? defaultInstance;
+        private static IWorkExecutor? _defaultInstance;
         public WorkExecutor(IWorkBalancer workBalancer)
         {
             this.workBalancer = workBalancer;
@@ -35,10 +35,7 @@
         {
             get
             {
-                if (defaultInstance is null)
-                    defaultInstance = new WorkExecutor(new WorkBalancer());
-
-                return defaultInstance;
+                return _defaultInstance ?? (_defaultInstance = new WorkExecutor(new WorkBalancer()));
             }
         }
 
