@@ -22,6 +22,23 @@
         {
             return new ExecutionEnvironment(threadCount);
         }
+
+        public static IExecutionEnvironment FromThreadPool()
+        {
+            long threadPoolCount = GetThreadPoolCount();
+
+            // This cast will never fail since the min case will at least be int.MaxValue
+            int maxPossibleThreadPoolValue = (int)Math.Min(threadPoolCount, int.MaxValue);
+            return new ExecutionEnvironment(maxPossibleThreadPoolValue);
+        }
+
+        private static long GetThreadPoolCount()
+        {
+            ThreadPool.GetAvailableThreads(out int availableWorkerThreads, out int completionPortThreads);
+
+            return Math.Max(availableWorkerThreads, 0);
+        }
+
         public bool Equals(ExecutionEnvironment? other)
         {
             if (other is null)
