@@ -10,10 +10,10 @@
         internal static Task Wrap(WorkAction workAction, IterationThread iterationThread, CancellationToken cancellationToken)
         {
             Action wrappedAction = GetWrappedAction(workAction, iterationThread, cancellationToken);
-
             Task wrappedTask = new(wrappedAction, cancellationToken, TaskCreationOptions.LongRunning);
             return wrappedTask;
         }
+
         internal static Task Wrap<T>(WorkAction<T> workAction, IterationThread iterationThread, CancellationToken cancellationToken)
         {
             Action wrappedAction = GetWrappedAction(workAction, iterationThread, cancellationToken);

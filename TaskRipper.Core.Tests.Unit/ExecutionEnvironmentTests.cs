@@ -11,7 +11,7 @@ namespace TaskRipper.Core.Tests.Unit
         {
             IExecutionEnvironment actualThreadPoolCount = ExecutionEnvironment.FromThreadPool();
             ThreadPool.GetAvailableThreads(out int expectedWorkerThreads, out int b);
-            actualThreadPoolCount.Should().Be(expectedWorkerThreads);
+            actualThreadPoolCount.ThreadCount.Should().Be(expectedWorkerThreads);
         }
     }
 }

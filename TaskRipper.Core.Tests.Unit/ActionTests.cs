@@ -10,7 +10,7 @@ namespace TaskRipper.Core.Tests.Unit
     public class ActionTests
     {
         private readonly ITestOutputHelper testOutputHelper;
-
+        
         public ActionTests(ITestOutputHelper testOutputHelper)
         {
             this.testOutputHelper = testOutputHelper;
@@ -24,7 +24,7 @@ namespace TaskRipper.Core.Tests.Unit
             var cancellationToken = new CancellationTokenSource().Token;
             var workAction = new WorkAction(actionContract, () => PrintOnesAndZeros());
             var result = await executor.ExecuteAsync(workAction, cancellationToken);
-
+ 
             result.Should().NotBeNull();
             result.ThreadsUsed.Should().Be(actionContract.ExecutionSettings.ExecutionEnvironment.ThreadCount);
             result.Duration.Should().BeGreaterThan(TimeSpan.FromTicks(1));
