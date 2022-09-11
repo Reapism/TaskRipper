@@ -38,8 +38,13 @@ namespace TaskRipper.Core.Tests.Unit
         [InlineData(int.MaxValue)]
         public void DoesNotThrowOutOfRange(int iter)
         {
-            var contract = WorkContract.Create("", iter);
+            var desc = string.Empty;
+            var contract = WorkContract.Create(desc, iter);
             contract.Should().NotBeNull();
+            contract.Iterations.Should().Be(iter);
+            contract.Description.Should().Be(desc);
+            contract.ExecutionSettings.Should().Be(ExecutionSettings.Default);
+            contract.ExecutionSettings.ExecutionEnvironment.Should().Be(ExecutionSettings.Default.ExecutionEnvironment);
         }
 
         private IExecutionSettings GetExecutionSettings()

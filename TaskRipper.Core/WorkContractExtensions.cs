@@ -29,13 +29,6 @@
                 throw new IterationsOutOfRangeException(contract, contract.Iterations, nameof(contract.Iterations));
             }
 
-            // Ensure the execution environment thread count is in range of the declared thread range in the contract.
-            if (!contract.ExecutionSettings.ThreadRange.IsInRange(contract.ExecutionSettings.ExecutionEnvironment.ThreadCount))
-            {
-                throw new ThreadOutOfRangeException(contract,
-                    contract.ExecutionSettings.ExecutionEnvironment.ThreadCount,
-                    nameof(contract.ExecutionSettings.ExecutionEnvironment.ThreadCount));
-            }
         }
     }
 }
