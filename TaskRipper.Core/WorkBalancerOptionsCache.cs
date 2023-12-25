@@ -38,7 +38,7 @@
         }
     }
 
-    internal class TaskDescriptor : ITaskDescriptor
+    internal class TaskDescriptor : IEquatable<TaskDescriptor>
     {
         public TaskDescriptor(string fullTaskName)
         {
@@ -49,17 +49,20 @@
 
         public override int GetHashCode()
         {
-            return FullTaskName.GetHashCode() * 23;
+            return HashCode.Combine(FullTaskName) * 23;
+        }
+
+        public bool Equals(TaskDescriptor? other)
+        {
+            return FullTaskName.Equals(other?.FullTaskName);
         }
 
         public override bool Equals(object? obj)
         {
-            return GetHashCode() == obj?.GetHashCode();
-        }
-    }
+            if (obj is TaskDescriptor taskDescriptor)
+                return Equals(taskDescriptor);
 
-    internal interface ITaskDescriptor
-    {
-        public string FullTaskName { get; }
+            return false;
+        }
     }
 }

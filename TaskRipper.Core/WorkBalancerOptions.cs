@@ -26,16 +26,7 @@
         /// available defined in a work contract.
         /// </para>
         /// </summary>
-        Min,
-
-        /// <summary>
-        /// Splits the iterations up in a way where the work is divided proportionally,
-        /// onto the median number of threads available.
-        /// <para>
-        /// Choose this option to moderately run the tasks by using the median number of threads available defined in a work contract.
-        /// </para>
-        /// </summary>
-        Medium,
+        MinimizeThreads,
 
         /// <summary>
         /// Split the iterations up in a way where the work is divided proportionally,
@@ -44,7 +35,7 @@
         /// Choose this option to maximize concurrency of running the tasks by using all threads available defined in a work contract. 
         /// </para>
         /// </summary>
-        High,
+        MaximizeThreads,
 
     }
 }
