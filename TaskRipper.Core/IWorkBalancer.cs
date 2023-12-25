@@ -45,7 +45,7 @@
         {
             var iterationsByThread = new Dictionary<int, int>();
 
-            var dividend = workContract.ExecutionSettings.ExecutionRange.End.Value;
+            var dividend = workContract.IterationsRequested;
             var divisor = workContract.ExecutionSettings.ThreadRange.End.Value;
 
             if (divisor <= 0)
@@ -55,7 +55,8 @@
             var index = 0;
 
             // If the dividend and divisor does not divide at all, and the remainder is less than or equal to the max thread count
-            // then, for each remainder, add reaminder number of threads with a single iteration in each.
+            // then, for each remainder, add remainder number of threads with a single iteration in each.
+            // Ex: 1k iterations, 16 threads, threads[0..14] 62 iterations, thread[15] 71 iterations
             if (tuple.Quotient == 0 && tuple.Remainder <= workContract.ExecutionSettings.ThreadRange.End.Value)
             {
                 for (; index < tuple.Remainder; index++)
@@ -77,9 +78,10 @@
 
         private IDictionary<int, int> None(IWorkContract workContract)
         {
-            var iterationsByThread = new Dictionary<int, int>();
-
-            iterationsByThread.Add(0, workContract.ExecutionSettings.ExecutionRange.End.Value);
+            var iterationsByThread = new Dictionary<int, int>
+            {
+                { 0, workContract.IterationsRequested }
+            };
 
             return iterationsByThread;
         }
@@ -88,11 +90,11 @@
         {
             var iterationsByThread = new Dictionary<int, int>();
 
-            var dividend = workContract.ExecutionSettings.ExecutionRange.End.Value;
+            var dividend = workContract.IterationsRequested;
             // if min thread range is greater than iterations, use number of iterations as divisor, else
             // use the min thread range.
-            var divisor = workContract.ExecutionSettings.ThreadRange.Start.Value > workContract.ExecutionSettings.ExecutionRange.End.Value 
-                ? workContract.ExecutionSettings.ExecutionRange.End.Value 
+            var divisor = workContract.ExecutionSettings.ThreadRange.Start.Value > workContract.IterationsRequested
+                ? workContract.IterationsRequested 
                 : workContract.ExecutionSettings.ThreadRange.Start.Value;
 
             if (divisor <= 0)
@@ -141,11 +143,11 @@
         {
             var iterationsByThread = new Dictionary<int, int>();
 
-            var dividend = workContract.ExecutionSettings.ExecutionRange.End.Value;
+            var dividend = workContract.IterationsRequested;
             // if max thread range is greater than iterations, use number of iterations as divisor, else
             // use the max thread range.
-            var divisor = workContract.ExecutionSettings.ThreadRange.End.Value > workContract.ExecutionSettings.ExecutionRange.End.Value    
-                ? workContract.ExecutionSettings.ExecutionRange.End.Value
+            var divisor = workContract.ExecutionSettings.ThreadRange.End.Value > workContract.IterationsRequested    
+                ? workContract.IterationsRequested
                 : workContract.ExecutionSettings.ThreadRange.End.Value;
 
             if (divisor <= 0)

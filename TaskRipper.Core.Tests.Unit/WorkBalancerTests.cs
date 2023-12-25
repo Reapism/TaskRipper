@@ -36,7 +36,7 @@ namespace TaskRipper.Core.Tests.Unit
 
             // Should be same number of iterations after balancing.
             int actualNumberOfIterationsAfterBalance = actualIterationsByThread.Values.As<IEnumerable<int>>().Sum();
-            actualNumberOfIterationsAfterBalance.Should().Be(iterations);
+            actualNumberOfIterationsAfterBalance.Should().Be(workContract.IterationsRequested);
 
         }
 
@@ -73,7 +73,7 @@ namespace TaskRipper.Core.Tests.Unit
             actualNumberOfThreads.Should().Be(expectedNumberOfThreads);
             
             int actualNumberOfIterationsAfterBalance = actualIterationsByThread.Values.As<IEnumerable<int>>().Sum();
-            actualNumberOfIterationsAfterBalance.Should().Be(iterations);
+            actualNumberOfIterationsAfterBalance.Should().Be(workContract.IterationsRequested);
         }
 
         [Theory]
@@ -116,7 +116,7 @@ namespace TaskRipper.Core.Tests.Unit
 
             // Should be same number of iterations after balancing.
             int actualNumberOfIterationsAfterBalance = actualIterationsByThread.Values.As<IEnumerable<int>>().Sum();
-            actualNumberOfIterationsAfterBalance.Should().Be(iterations);
+            actualNumberOfIterationsAfterBalance.Should().Be(workContract.IterationsRequested);
         }
 
 
@@ -160,7 +160,7 @@ namespace TaskRipper.Core.Tests.Unit
 
             // Should be same number of iterations after balancing.
             int actualNumberOfIterationsAfterBalance = actualIterationsByThread.Values.As<IEnumerable<int>>().Sum();
-            actualNumberOfIterationsAfterBalance.Should().Be(iterations);
+            actualNumberOfIterationsAfterBalance.Should().Be(workContract.IterationsRequested);
         }
 
         // Private Setup Methods
