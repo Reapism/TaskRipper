@@ -7,7 +7,7 @@
         /// minimum and maximum number of threads
         /// to allow and use.
         /// </summary>
-        Range ThreadRange{ get; }
+        Range ThreadRange { get; }
 
         /// Gets a <see cref="Range"/> indicating the
         /// minimum and maximum number of iterations
@@ -44,7 +44,7 @@
             {
                 if (defaultInstance is null)
                 {
-                    var executionEnv = new ExecutionEnvironment();
+                    var executionEnv = LocalExecutionEnvironment.Default;
                     var threadRange = new Range(1, executionEnv.ThreadCount);
                     var maxExecutionRange = threadRange.End.Value * 1000;
                     var executionRange = new Range(1, maxExecutionRange);
@@ -55,17 +55,17 @@
             }
         }
 
-        public ExecutionSettings(IExecutionEnvironment executionEnvironment, Range threadRange, Range executionRange, WorkBalancerOptions workBalancerOptions)
+        public static IExecutionSettings Create(IExecutionEnvironment executionEnvironment, Range threadRange, Range executionRange, WorkBalancerOptions workBalancerOptions)
+        {
+            return new ExecutionSettings(executionEnvironment, threadRange, executionRange, workBalancerOptions);
+        }
+
+        private ExecutionSettings(IExecutionEnvironment executionEnvironment, Range threadRange, Range executionRange, WorkBalancerOptions workBalancerOptions)
         {
             ThreadRange = threadRange;
             ExecutionRange = executionRange;
             ExecutionEnvironment = executionEnvironment;
             WorkBalancerOptions = workBalancerOptions;
-        }
-
-        public ExecutionSettings(Range threadRange, Range executionRange, WorkBalancerOptions workBalancerOptions)
-            : this(new ExecutionEnvironment(), threadRange, executionRange, workBalancerOptions)
-        {
         }
 
         /// <inheritdoc/>
@@ -86,9 +86,9 @@
                 return false;
 
             return this.ExecutionRange.Equals(other.ExecutionRange) &&
-                this.ThreadRange.Equals(other.ThreadRange) &&
-                this.WorkBalancerOptions == other.WorkBalancerOptions &&
-                this.ExecutionEnvironment.Equals(other.ExecutionEnvironment);
+                ThreadRange.Equals(other.ThreadRange) &&
+                WorkBalancerOptions == other.WorkBalancerOptions &&
+                ExecutionEnvironment.Equals(other.ExecutionEnvironment);
         }
 
         public override bool Equals(object? obj)
