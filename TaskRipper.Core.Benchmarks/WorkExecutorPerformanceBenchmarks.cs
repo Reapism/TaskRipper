@@ -21,8 +21,8 @@ namespace TaskRipper.Core.Benchmarks
         [Benchmark(OperationsPerInvoke = OneHundredThousand)]
         public async Task PrintZerosAndOnesTaskRipper()
         {
-            var action = PrintZerosAndOnes();
-            var contract = WorkContract.Create(GetExecutionSettings(), action.Method.Name, OneHundredThousand);
+            IActionable action = new Actionable(PrintZerosAndOnes());
+            var contract = WorkContract.Create(GetExecutionSettings(), action.Action.Method.Name, OneHundredThousand);
             var workAction = new WorkAction(contract, action);
             var unusedToken = new CancellationTokenSource().Token;
 
@@ -81,7 +81,6 @@ namespace TaskRipper.Core.Benchmarks
                 action();
             }
             var endTime = DateTime.Now;
-            var duration = new DateRange(startTime, endTime).Duration;
 
             //ConsoleLogger.WriteLine($"Result duration for {action.Method.Name} iterating {contract.Iterations} took {duration}");
         }
@@ -97,7 +96,6 @@ namespace TaskRipper.Core.Benchmarks
                 action(i);
             }
             var endTime = DateTime.Now;
-            var duration = new DateRange(startTime, endTime).Duration;
 
             //ConsoleLogger.WriteLine($"Result duration for {action.Method.Name} iterating {contract.Iterations} took {duration}");
         }
@@ -115,7 +113,7 @@ namespace TaskRipper.Core.Benchmarks
                 queue.Enqueue(func());
             }
             var endTime = DateTime.Now;
-            var duration = new DateRange(startTime, endTime).Duration;
+
 
             //ConsoleLogger.WriteLine($"Result duration for {func.Method.Name} iterating {contract.Iterations} took {duration}");
         }
@@ -134,7 +132,7 @@ namespace TaskRipper.Core.Benchmarks
                 queue.Enqueue(func(i));
             }
             var endTime = DateTime.Now;
-            var duration = new DateRange(startTime, endTime).Duration;
+
 
             //ConsoleLogger.WriteLine($"Result duration for {func.Method.Name} iterating {contract.Iterations} took {duration}");
         }
@@ -142,7 +140,7 @@ namespace TaskRipper.Core.Benchmarks
         private IExecutionSettings GetExecutionSettings()
         {
             // Ensure the execution range is within the tests execution range.
-            return new ExecutionSettings(new Range(1, 8), new Range(1, OneHundredThousand + 1), WorkBalancerOptions.Optimize);
+            return ExecutionSettings.Create(LocalExecutionEnvironment.Default, new Range(1, 8), new Range(1, OneHundredThousand + 1), WorkBalancerOptions.Optimize);
         }
 
         private Action PrintZerosAndOnes()
