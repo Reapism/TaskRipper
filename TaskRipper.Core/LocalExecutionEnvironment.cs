@@ -5,7 +5,7 @@
         string MachineName { get; }
         int ThreadCount { get; }
     }
-    public sealed class LocalExecutionEnvironment : IExecutionEnvironment, IEquatable<LocalExecutionEnvironment>
+    public sealed record LocalExecutionEnvironment : IExecutionEnvironment
     {
         private LocalExecutionEnvironment()
             : this(Environment.MachineName, Environment.ProcessorCount)
@@ -51,26 +51,7 @@
             if (other is null)
                 return false;
 
-            return ThreadCount == other.ThreadCount;
-        }
-
-        public override bool Equals(object? obj)
-        {
-            if (obj is null)
-                return false;
-
-            if (obj is LocalExecutionEnvironment other)
-                return Equals(other);
-
-            return false;
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine
-            (
-                ThreadCount
-            );
+            return ThreadCount == other.ThreadCount && MachineName == other.MachineName;
         }
     }
 }
