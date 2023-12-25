@@ -7,15 +7,14 @@ namespace TaskRipper.Core.Tests.Unit
     public class WorkContractTests
     {
         [Theory]
-        [InlineData("", "", 1, 1, true)]
-        [InlineData("a", "a", 1, 1, true)]
-        [InlineData("a", "A", 1, 1, false)]
-        [InlineData("a", "A", 2, 2, false)]
-        [InlineData("a", "a", 2, 1, false)]
-        public void ShouldBeEqual(string desc1, string desc2, int iter1, int iter2, bool shouldBeEqual)
+        [InlineData(1, 1, true)]
+        [InlineData(1, 2, false)]
+        [InlineData(2, 2, true)]
+        [InlineData(2, 1, false)]
+        public void ShouldBeEqual(int iter1, int iter2, bool shouldBeEqual)
         {
-            IWorkContract firstContract = WorkContract.Create(GetExecutionSettings(), desc1, iter1);
-            IWorkContract secondContract = WorkContract.Create(GetExecutionSettings(), desc2, iter2);
+            IWorkContract firstContract = WorkContract.Create(GetExecutionSettings(), iter1);
+            IWorkContract secondContract = WorkContract.Create(GetExecutionSettings(), iter2);
 
             if (shouldBeEqual)
                 firstContract.Should().Be(secondContract);
@@ -29,7 +28,7 @@ namespace TaskRipper.Core.Tests.Unit
         [InlineData(int.MinValue)]
         public void ThrowsOutOfRange(int iter)
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => WorkContract.Create("", iter));
+            Assert.Throws<ArgumentException>(() => WorkContract.Create(iter));
         }
 
         [Theory]
@@ -38,11 +37,9 @@ namespace TaskRipper.Core.Tests.Unit
         [InlineData(int.MaxValue)]
         public void DoesNotThrowOutOfRange(int iter)
         {
-            var desc = string.Empty;
-            var contract = WorkContract.Create(desc, iter);
+            var contract = WorkContract.Create(iter);
             contract.Should().NotBeNull();
-            contract.Iterations.Should().Be(iter);
-            contract.Description.Should().Be(desc);
+            contract.IterationsRequested.Should().Be(iter);
             contract.ExecutionSettings.Should().Be(ExecutionSettings.Default);
             contract.ExecutionSettings.ExecutionEnvironment.Should().Be(ExecutionSettings.Default.ExecutionEnvironment);
         }

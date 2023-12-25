@@ -29,7 +29,7 @@ namespace TaskRipper.Core.Tests.Unit
         {
             var executionSettings = GetExecutionSettings(iterations, minThreadCount, maxThreadCount, WorkBalancerOptions.Optimize);
             var workContract = GetWorkContract(executionSettings, iterations);
-            var actualIterationsByThread = GetWorkBalancer().Balance(workContract);
+            var actualIterationsByThread = new WorkBalancer().Balance(workContract);
 
             var actualNumberOfThreads = actualIterationsByThread.Count;
             actualNumberOfThreads.Should().Be(expectedNumberOfThreads);
@@ -66,7 +66,7 @@ namespace TaskRipper.Core.Tests.Unit
         {
             var executionSettings = GetExecutionSettings(iterations, minThreadCount, maxThreadCount, WorkBalancerOptions.None);
             var workContract = GetWorkContract(executionSettings, iterations);
-            var actualIterationsByThread = GetWorkBalancer().Balance(workContract);
+            var actualIterationsByThread = new WorkBalancer().Balance(workContract);
 
             // number of threads after balancing should match expectation
             var actualNumberOfThreads = actualIterationsByThread.Count;
@@ -107,9 +107,9 @@ namespace TaskRipper.Core.Tests.Unit
         [InlineData(20000, 160, 320, 160)]
         public void MinShouldReturnCorrectValues(int iterations, int minThreadCount, int maxThreadCount, int expectedNumberOfThreads)
         {
-            var executionSettings = GetExecutionSettings(iterations, minThreadCount, maxThreadCount, WorkBalancerOptions.Min);
+            var executionSettings = GetExecutionSettings(iterations, minThreadCount, maxThreadCount, WorkBalancerOptions.MinimizeThreads);
             var workContract = GetWorkContract(executionSettings, iterations);
-            var actualIterationsByThread = GetWorkBalancer().Balance(workContract);
+            var actualIterationsByThread = new WorkBalancer().Balance(workContract);
 
             var actualNumberOfThreads = actualIterationsByThread.Count;
             actualNumberOfThreads.Should().Be(expectedNumberOfThreads);
@@ -151,9 +151,9 @@ namespace TaskRipper.Core.Tests.Unit
         [InlineData(20000, 160, 320, 320)]
         public void HighShouldReturnCorrectValues(int iterations, int minThreadCount, int maxThreadCount, int expectedNumberOfThreads)
         {
-            var executionSettings = GetExecutionSettings(iterations, minThreadCount, maxThreadCount, WorkBalancerOptions.High);
+            var executionSettings = GetExecutionSettings(iterations, minThreadCount, maxThreadCount, WorkBalancerOptions.MaximizeThreads);
             var workContract = GetWorkContract(executionSettings, iterations);
-            var actualIterationsByThread = GetWorkBalancer().Balance(workContract);
+            var actualIterationsByThread = new WorkBalancer().Balance(workContract);
 
             var actualNumberOfThreads = actualIterationsByThread.Count;
             actualNumberOfThreads.Should().Be(expectedNumberOfThreads);
@@ -167,21 +167,12 @@ namespace TaskRipper.Core.Tests.Unit
 
         private static IExecutionSettings GetExecutionSettings(int iterations, int minThreadCount, int maxThreadCount, WorkBalancerOptions workBalancerOptions)
         {
-            return new ExecutionSettings(new Range(minThreadCount, maxThreadCount), new Range(1, ++iterations), workBalancerOptions);
-        }
-
-        private IWorkBalancer workBalancer;
-        private IWorkBalancer GetWorkBalancer()
-        {
-            if (workBalancer is null)
-                workBalancer = new WorkBalancer();
-
-            return workBalancer;
+            return ExecutionSettings.Create(LocalExecutionEnvironment.Default, new Range(minThreadCount, maxThreadCount), new Range(1, ++iterations), workBalancerOptions);
         }
 
         private IWorkContract GetWorkContract(IExecutionSettings executionSettings, int iterations)
         {
-            return WorkContract.Create(executionSettings, "TEST", iterations);
+            return WorkContract.Create(executionSettings, iterations);
         }
     }
 }

@@ -22,7 +22,7 @@ namespace TaskRipper.Core.Tests.Unit
             var actionContract = new WorkContract(GetExecutionSettings(), "Test", 1010);
             var executor = WorkExecutor.Default;
             var cancellationToken = new CancellationTokenSource().Token;
-            var workAction = new WorkAction(actionContract, () => PrintOnesAndZeros());
+            var workAction = new WorkAction(actionContract, new Actionable(PrintOnesAndZeros()));
             var result = await executor.ExecuteAsync(workAction, cancellationToken);
  
             result.Should().NotBeNull();
