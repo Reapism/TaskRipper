@@ -14,21 +14,15 @@
         internal static void ValidateContract(this IWorkContract contract)
         {
             // Ensure all dependencies are non null
-            if (contract is null)
-                throw new ArgumentNullException(nameof(contract));
-
-            if (contract.ExecutionSettings is null)
-                throw new ArgumentNullException(nameof(contract.ExecutionSettings));
-
-            if (contract.ExecutionSettings.ExecutionEnvironment is null)
-                throw new ArgumentNullException(nameof(contract.ExecutionSettings.ExecutionEnvironment));
+            Guard.Against.Null(contract);
+            Guard.Against.Null(contract.ExecutionSettings);
+            Guard.Against.Null(contract.ExecutionSettings.ExecutionEnvironment);
 
             // Ensure iterations is within execution range.
-            if (!contract.ExecutionSettings.ExecutionRange.IsInRange(contract.Iterations))
+            if (!contract.ExecutionSettings.ExecutionRange.IsInRange(contract.IterationsRequested))
             {
-                throw new IterationsOutOfRangeException(contract, contract.Iterations, nameof(contract.Iterations));
+                throw new IterationsOutOfRangeException(contract, contract.IterationsRequested, nameof(contract.IterationsRequested));
             }
-
         }
     }
 }
