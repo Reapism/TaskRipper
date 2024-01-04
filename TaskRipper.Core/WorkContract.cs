@@ -14,10 +14,12 @@ namespace TaskRipper.Core
 
     public sealed class DelegateBuilder<TRequest, TResult>
     {
+        private bool RequestProvided {  get; set; }
+        private TRequest Request { get; set; }
         /// <summary>
         /// Action that runs every iteration regardless of conditions.
         /// </summary>
-        private Func<TRequest,TResult> ExecutingFunction { get; set; }
+        private Func<TRequest, TResult> ExecutingFunction { get; set; }
 
         /// <summary>
         /// Action that runs every before <see cref="ExecutingFunction"/>
@@ -42,10 +44,16 @@ namespace TaskRipper.Core
         /// </summary>
         public DelegateBuilder<TRequest, TResult> WithRequestBuilder(Func<TRequest> requestBuilder)
         {
-            RequestBuilder = requestBuilder ?? throw new ArgumentNullException(nameof(requestBuilder));
+            Request = requestBuilder() ?? throw new ArgumentNullException(nameof(requestBuilder));
+            RequestProvided = true;
             return this;
         }
-
+        public DelegateBuilder<TRequest, TResult> WithRequest(TRequest request)
+        {
+            Request = request;
+            RequestProvided = true;
+            return this;
+        }
         public DelegateBuilder<TRequest, TResult> WithExecutingFunction(Func<TRequest, TResult> function)
         {
             ExecutingFunction = function ?? throw new ArgumentNullException(nameof(function));
@@ -78,8 +86,13 @@ namespace TaskRipper.Core
 
         public TaskRipperDelegate<TRequest, TResult> Build()
         {
+            if (!RequestProvided)
+            {
+                throw new InvalidOperationException("You must provide the request instance. Call WithRequest or WithRequestBuilder.");
+            }
+
             Guard.Against.Null(ExecutingFunction);
-            return (request, token) =>
+            return (request, token ) =>
             {
                 // Check if cancellation has been requested
                 token.ThrowIfCancellationRequested();
@@ -122,7 +135,6 @@ namespace TaskRipper.Core
         /// Creates a work contract with default execution settings.
         /// <para>See <see cref="ExecutionSettings.Default"/></para> to get the default settings.
         /// </summary>
-        /// <param name="description"></param>
         /// <param name="iterations"></param>
         /// <returns></returns>
         public static IWorkContract Create(int iterations)

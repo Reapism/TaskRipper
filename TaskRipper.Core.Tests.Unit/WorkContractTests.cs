@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using System;
+using System.Diagnostics.Contracts;
 using Xunit;
 
 namespace TaskRipper.Core.Tests.Unit
@@ -16,10 +17,23 @@ namespace TaskRipper.Core.Tests.Unit
             IWorkContract firstContract = WorkContract.Create(GetExecutionSettings(), iter1);
             IWorkContract secondContract = WorkContract.Create(GetExecutionSettings(), iter2);
 
+            firstContract.Should().NotBeNull();
+            secondContract.Should().NotBeNull();
+
+
             if (shouldBeEqual)
                 firstContract.Should().Be(secondContract);
             else
                 firstContract.Should().NotBe(secondContract);
+
+            firstContract.IterationsRequested.Should().Be(iter1);
+            firstContract.ExecutionSettings.Should().Be(ExecutionSettings.Default);
+            firstContract.ExecutionSettings.ExecutionEnvironment.Should().Be(ExecutionSettings.Default.ExecutionEnvironment);
+
+
+            secondContract.IterationsRequested.Should().Be(iter2);
+            secondContract.ExecutionSettings.Should().Be(ExecutionSettings.Default);
+            secondContract.ExecutionSettings.ExecutionEnvironment.Should().Be(ExecutionSettings.Default.ExecutionEnvironment);
         }
 
         [Theory]
