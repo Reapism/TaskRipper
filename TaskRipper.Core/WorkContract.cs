@@ -2,126 +2,114 @@
 
 namespace TaskRipper.Core
 {
-    public delegate TResult TaskRipperDelegate<TRequest, TResult>(TRequest request, CancellationToken cancellationToken);
+    public delegate TResult Actionable<TRequest, TResult>(TRequest request);
+    public delegate Task<TResult> ActionableAsync<TRequest, TResult>(TRequest request);
     /// <summary>
     /// Represents the contract for executing work.
     /// </summary>
     public interface IWorkContract
     {
+        /// <summary>
+        /// The execution settings for this contract.
+        /// </summary>
         IExecutionSettings ExecutionSettings { get; }
+
+        /// <summary>
+        /// The number of iterations requested for this contract.
+        /// </summary>
         int IterationsRequested { get; }
+        /// <summary>
+        /// The options to describe to a <see cref="IWorkBalancer"/>
+        /// how to balance the work for this contract.
+        /// </summary>
+        WorkBalancerOptions WorkBalancerOptions { get; }
+
+        CancellationToken CancellationToken { get; }
     }
 
-    public sealed class DelegateBuilder<TRequest, TResult>
+    public class WorkContractBuilder
     {
-        private bool RequestProvided {  get; set; }
-        private TRequest Request { get; set; }
-        /// <summary>
-        /// Action that runs every iteration regardless of conditions.
-        /// </summary>
-        private Func<TRequest, TResult> ExecutingFunction { get; set; }
+        private IExecutionSettings _executionSettings;
+        private CancellationToken _cancellationToken;
+        private int _iterationRequested;
+        private WorkBalancerOptions _workBalancerOptions;
 
         /// <summary>
-        /// Action that runs every before <see cref="ExecutingFunction"/>
+        /// Adds the specified cancellation token to the contract.
         /// </summary>
-        private Action PreAction { get; set; }
+        /// <param name="cancellationToken">The cancellation token to add.</param>
+        /// <returns></returns>
+        public WorkContractBuilder WithCancellationToken(CancellationToken cancellationToken)
+        {
+            _cancellationToken = cancellationToken;
+            return this;
+        }
 
         /// <summary>
-        /// Action that runs every after <see cref="ExecutingFunction"/>
+        /// Adds the specified <see cref="IExecutionSettings"/> to the contract.
         /// </summary>
-        private Action PostAction { get; set; }
+        /// <param name="executionSettings"></param>
+        /// <returns></returns>
+        public WorkContractBuilder WithExecutionSettings(IExecutionSettings executionSettings)
+        {
+            _executionSettings = executionSettings;
+            return this;
+        }
 
         /// <summary>
-        /// Action that runs every after <see cref="ExecutingFunction"/>
+        /// Adds the specified <see cref="IExecutionSettings"/> to the contract.
         /// </summary>
-        private Func<TRequest, bool> ConditionalAction { get; set; }
-
-        private CancellationToken CancellationToken { get; set; }
-        private Func<TRequest> RequestBuilder { get; set; }
-
-        /// <summary>
-        /// Request 
-        /// </summary>
-        public DelegateBuilder<TRequest, TResult> WithRequestBuilder(Func<TRequest> requestBuilder)
+        /// <param name="executionSettings"></param>
+        /// <returns></returns>
+        public WorkContractBuilder UseDefaultExecutionSettings()
         {
-            Request = requestBuilder() ?? throw new ArgumentNullException(nameof(requestBuilder));
-            RequestProvided = true;
-            return this;
-        }
-        public DelegateBuilder<TRequest, TResult> WithRequest(TRequest request)
-        {
-            Request = request;
-            RequestProvided = true;
-            return this;
-        }
-        public DelegateBuilder<TRequest, TResult> WithExecutingFunction(Func<TRequest, TResult> function)
-        {
-            ExecutingFunction = function ?? throw new ArgumentNullException(nameof(function));
+            _executionSettings = ExecutionSettings.Default;
             return this;
         }
 
-        public DelegateBuilder<TRequest, TResult> WithPreAction(Action action)
+        public WorkContractBuilder WithIterations(int iterationsRequested)
         {
-            PreAction = action ?? throw new ArgumentNullException(nameof(action));
+            _iterationRequested = iterationsRequested;
             return this;
         }
 
-        public DelegateBuilder<TRequest, TResult> WithPostAction(Action action)
+        public WorkContractBuilder WithWorkBalancingOptions(WorkBalancerOptions options)
         {
-            PostAction = action ?? throw new ArgumentNullException(nameof(action));
+            _workBalancerOptions = options;
             return this;
         }
 
-        public DelegateBuilder<TRequest, TResult> WithConditionalAction(Func<TRequest, bool> condition)
+        public IWorkContract Build()
         {
-            ConditionalAction = condition ?? throw new ArgumentNullException(nameof(condition));
-            return this;
+            if (!IsBuildable())
+                throw new InvalidOperationException();
+
+            return WorkContract.Create(_executionSettings, _workBalancerOptions, _cancellationToken, _iterationRequested);
         }
 
-        public DelegateBuilder<TRequest, TResult> WithCancellationToken(CancellationToken cancellationToken)
+        private bool IsBuildable()
         {
-            CancellationToken = cancellationToken;
-            return this;
-        }
+            if (_executionSettings is null)
+                return false;
 
-        public TaskRipperDelegate<TRequest, TResult> Build()
-        {
-            if (!RequestProvided)
-            {
-                throw new InvalidOperationException("You must provide the request instance. Call WithRequest or WithRequestBuilder.");
-            }
+            if (_iterationRequested < 1)
+                return false;
 
-            Guard.Against.Null(ExecutingFunction);
-            return (request, token ) =>
-            {
-                // Check if cancellation has been requested
-                token.ThrowIfCancellationRequested();
-
-                PreAction?.Invoke();
-
-                if (ConditionalAction == null || ConditionalAction(request))
-                {
-                    TResult result = ExecutingFunction(request);
-
-                    PostAction?.Invoke();
-
-                    return result;
-                }
-
-                throw new InvalidOperationException("Conditional action failed.");
-            };
+            return true;
         }
     }
 
     public class WorkContract : IWorkContract, IEquatable<WorkContract>
     {
         private WorkContract(int iterationsRequested = 1)
-            : this(Core.ExecutionSettings.Default, iterationsRequested)
+            : this(Core.ExecutionSettings.Default, WorkBalancerOptions.Optimize, CancellationToken.None, iterationsRequested)
         { }
-        private WorkContract(IExecutionSettings executionSettings, int iterationsRequested = 1)
+        private WorkContract(IExecutionSettings executionSettings, WorkBalancerOptions workBalancerOptions, CancellationToken cancellationToken, int iterationsRequested = 1)
         {
             ExecutionSettings = Guard.Against.Null(executionSettings);
             IterationsRequested = Guard.Against.NegativeOrZero(iterationsRequested);
+            CancellationToken = cancellationToken;
+            WorkBalancerOptions = workBalancerOptions;
         }
 
         /// <summary>
@@ -130,6 +118,10 @@ namespace TaskRipper.Core
         public int IterationsRequested { get; }
 
         public IExecutionSettings ExecutionSettings { get; }
+
+        public WorkBalancerOptions WorkBalancerOptions { get; }
+
+        public CancellationToken CancellationToken { get; }
 
         /// <summary>
         /// Creates a work contract with default execution settings.
@@ -143,9 +135,9 @@ namespace TaskRipper.Core
             return workContract;
         }
 
-        public static IWorkContract Create([ValidatedNotNull, NotNull] IExecutionSettings executionSettings, int iterations)
+        public static IWorkContract Create([ValidatedNotNull, NotNull] IExecutionSettings executionSettings, WorkBalancerOptions workBalancerOptions, CancellationToken cancellationToken, int iterations)
         {
-            var workContract = new WorkContract(executionSettings, iterations);
+            var workContract = new WorkContract(executionSettings, workBalancerOptions, cancellationToken, iterations);
             return workContract;
         }
 
@@ -155,7 +147,9 @@ namespace TaskRipper.Core
                 return false;
 
             return IterationsRequested == other.IterationsRequested &&
-                ExecutionSettings.Equals(other.ExecutionSettings);
+                ExecutionSettings.Equals(other.ExecutionSettings) && 
+                WorkBalancerOptions.Equals(other.WorkBalancerOptions) && 
+                CancellationToken.Equals(other.CancellationToken);
         }
 
         public override bool Equals(object? obj)
