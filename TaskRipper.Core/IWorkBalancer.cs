@@ -1,4 +1,6 @@
-﻿namespace TaskRipper.Core
+﻿using System.Diagnostics.Contracts;
+
+namespace TaskRipper.Core
 {
     public interface IWorkBalancer
     {
@@ -21,7 +23,7 @@
         {
             workContract.ValidateContract();
 
-            var workBalancerFunction = GetWorkBalancerFunction(workContract.ExecutionSettings.WorkBalancerOptions);
+            var workBalancerFunction = GetWorkBalancerFunction(workContract.WorkBalancerOptions);
             var iterationsByThread = workBalancerFunction.Invoke(workContract);
 
             RemoveEmptyEntries(iterationsByThread);
@@ -45,35 +47,46 @@
         {
             var iterationsByThread = new Dictionary<int, int>();
 
-            var dividend = workContract.IterationsRequested;
-            var divisor = workContract.ExecutionSettings.ThreadRange.End.Value;
+            var iterations = workContract.IterationsRequested;
+            var maxThreadsInRange = workContract.ExecutionSettings.ThreadRange.End.Value;
 
-            if (divisor <= 0)
-                throw new ArgumentException("The divisor must be at least 1.");
+            if (maxThreadsInRange < 1)
+                throw new ArgumentException($"The max threads {maxThreadsInRange} is less than 1.");
 
-            var tuple = Math.DivRem(dividend, divisor);
+            var (numOfThreads, remainderIterations) = Math.DivRem(iterations, maxThreadsInRange);
             var index = 0;
 
             // If the dividend and divisor does not divide at all, and the remainder is less than or equal to the max thread count
             // then, for each remainder, add remainder number of threads with a single iteration in each.
             // Ex: 1k iterations, 16 threads, threads[0..14] 62 iterations, thread[15] 71 iterations
-            if (tuple.Quotient == 0 && tuple.Remainder <= workContract.ExecutionSettings.ThreadRange.End.Value)
+            
+            if (numOfThreads == 0 && remainderIterations <= workContract.ExecutionSettings.ThreadRange.End.Value)
             {
-                for (; index < tuple.Remainder; index++)
+                for (; index < remainderIterations; index++)
                 {
                     iterationsByThread.Add(index, 1);
                 }
                 return iterationsByThread;
             }
 
-            for (; index < divisor - 1; index++)
+            // else case
+            for (; index < maxThreadsInRange - 1; index++)
             {
-                iterationsByThread.Add(index, tuple.Quotient);
+                iterationsByThread.Add(index, numOfThreads);
             }
 
-            iterationsByThread.Add(index, tuple.Quotient + tuple.Remainder);
+            iterationsByThread.Add(index, numOfThreads + remainderIterations);
 
             return iterationsByThread;
+        }
+
+        private int GetThreadCount(int requestThreadCount, Range threadRange)
+        {
+            var maxThreadCount = TaskScheduler.Current.MaximumConcurrencyLevel;
+            var minRequestedThreadCount =  Math.Min(requestThreadCount, maxThreadCount);
+
+            var maxThreadCountInRange = threadRange.End.Value;
+            return Math.Min(minRequestedThreadCount, maxThreadCountInRange);
         }
 
         private IDictionary<int, int> None(IWorkContract workContract)
