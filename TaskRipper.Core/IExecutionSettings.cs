@@ -17,18 +17,13 @@
         /// <summary>
         /// The <see cref="IExecutionEnvironment"/>.
         /// </summary>
-        IExecutionEnvironment ExecutionEnvironment { get; }
-
-        /// <summary>
-        /// The options to describe to a <see cref="IWorkBalancer"/>
-        /// how to balance the work.
-        /// </summary>
-        WorkBalancerOptions WorkBalancerOptions { get; }
+        IExecutionEnvironment Environment { get; }
     }
 
     public class ExecutionSettings : IExecutionSettings, IEquatable<ExecutionSettings>
     {
         private static IExecutionSettings? defaultInstance;
+
         /// <summary>
         /// Gets a default instance of the <see cref="IExecutionSettings"/>.
         /// </summary>
@@ -48,24 +43,23 @@
                     var threadRange = new Range(1, executionEnv.ThreadCount);
                     var maxExecutionRange = threadRange.End.Value * 1000;
                     var executionRange = new Range(1, maxExecutionRange);
-                    defaultInstance = new ExecutionSettings(executionEnv, threadRange, executionRange, WorkBalancerOptions.Optimize);
+                    defaultInstance = new ExecutionSettings(executionEnv, threadRange, executionRange);
                 }
 
                 return defaultInstance;
             }
         }
 
-        public static IExecutionSettings Create(IExecutionEnvironment executionEnvironment, Range threadRange, Range executionRange, WorkBalancerOptions workBalancerOptions)
+        public static IExecutionSettings Create(IExecutionEnvironment executionEnvironment, Range threadRange, Range executionRange)
         {
-            return new ExecutionSettings(executionEnvironment, threadRange, executionRange, workBalancerOptions);
+            return new ExecutionSettings(executionEnvironment, threadRange, executionRange);
         }
 
-        private ExecutionSettings(IExecutionEnvironment executionEnvironment, Range threadRange, Range executionRange, WorkBalancerOptions workBalancerOptions)
+        private ExecutionSettings(IExecutionEnvironment executionEnvironment, Range threadRange, Range executionRange)
         {
             ThreadRange = threadRange;
             ExecutionRange = executionRange;
-            ExecutionEnvironment = executionEnvironment;
-            WorkBalancerOptions = workBalancerOptions;
+            Environment = executionEnvironment;
         }
 
         /// <inheritdoc/>
@@ -75,10 +69,7 @@
         public Range ExecutionRange { get; }
 
         /// <inheritdoc/>
-        public IExecutionEnvironment ExecutionEnvironment { get; }
-
-        /// <inheritdoc/>
-        public WorkBalancerOptions WorkBalancerOptions { get; }
+        public IExecutionEnvironment Environment { get; }
 
         public bool Equals(ExecutionSettings? other)
         {
@@ -87,8 +78,7 @@
 
             return this.ExecutionRange.Equals(other.ExecutionRange) &&
                 ThreadRange.Equals(other.ThreadRange) &&
-                WorkBalancerOptions == other.WorkBalancerOptions &&
-                ExecutionEnvironment.Equals(other.ExecutionEnvironment);
+                Environment.Equals(other.Environment);
         }
 
         public override bool Equals(object? obj)
@@ -108,8 +98,7 @@
             (
                 ExecutionRange.GetHashCode(),
                 ThreadRange.GetHashCode(),
-                ExecutionEnvironment.GetHashCode(),
-                WorkBalancerOptions.GetHashCode()
+                Environment.GetHashCode()
             );
         }
     }

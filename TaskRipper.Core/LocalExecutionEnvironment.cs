@@ -7,6 +7,7 @@
     }
     public sealed record LocalExecutionEnvironment : IExecutionEnvironment
     {
+        private static readonly IExecutionEnvironment executionEnvironment = new LocalExecutionEnvironment();
         private LocalExecutionEnvironment()
             : this(Environment.MachineName, Environment.ProcessorCount)
         { }
@@ -14,7 +15,7 @@
         private LocalExecutionEnvironment(string machineName, int threadCount)
         {
             MachineName = Guard.Against.Null(machineName);
-            ThreadCount = threadCount;
+            ThreadCount = Guard.Against.NegativeOrZero(threadCount) ;
         }
 
         public int ThreadCount { get; }
@@ -23,7 +24,7 @@
         /// <summary>
         /// Returns an instance using the default constructor.
         /// </summary>
-        public static IExecutionEnvironment Default { get; } = new LocalExecutionEnvironment();
+        public static IExecutionEnvironment Default { get; } = executionEnvironment;
 
         public static IExecutionEnvironment Create(int threadCount, string machineName)
         {
