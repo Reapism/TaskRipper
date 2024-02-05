@@ -16,7 +16,7 @@
             // Ensure all dependencies are non null
             Guard.Against.Null(contract);
             Guard.Against.Null(contract.ExecutionSettings);
-            Guard.Against.Null(contract.ExecutionSettings.ExecutionEnvironment);
+            Guard.Against.Null(contract.ExecutionSettings.Environment);
 
             // Ensure iterations is within execution range.
             if (!contract.ExecutionSettings.ExecutionRange.IsInRange(contract.IterationsRequested))
