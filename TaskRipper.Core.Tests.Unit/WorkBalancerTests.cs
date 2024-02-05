@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Xunit;
 
 namespace TaskRipper.Core.Tests.Unit
@@ -27,8 +28,8 @@ namespace TaskRipper.Core.Tests.Unit
         [InlineData(10000, 1, 16, 16)]
         public void OptimizeShouldReturnCorrectValues(int iterations, int minThreadCount, int maxThreadCount, int expectedNumberOfThreads)
         {
-            var executionSettings = GetExecutionSettings(iterations, minThreadCount, maxThreadCount, WorkBalancerOptions.Optimize);
-            var workContract = GetWorkContract(executionSettings, iterations);
+            var executionSettings = GetExecutionSettings(iterations, minThreadCount, maxThreadCount);
+            var workContract = GetWorkContract(executionSettings, WorkBalancerOptions.Optimize, iterations);
             var actualIterationsByThread = new WorkBalancer().Balance(workContract);
 
             var actualNumberOfThreads = actualIterationsByThread.Count;
@@ -64,8 +65,8 @@ namespace TaskRipper.Core.Tests.Unit
         [InlineData(10000, 2, 3, 1)]
         public void NoneShouldReturnCorrectValues(int iterations, int minThreadCount, int maxThreadCount, int expectedNumberOfThreads)
         {
-            var executionSettings = GetExecutionSettings(iterations, minThreadCount, maxThreadCount, WorkBalancerOptions.None);
-            var workContract = GetWorkContract(executionSettings, iterations);
+            var executionSettings = GetExecutionSettings(iterations, minThreadCount, maxThreadCount);
+            var workContract = GetWorkContract(executionSettings, WorkBalancerOptions.None, iterations);
             var actualIterationsByThread = new WorkBalancer().Balance(workContract);
 
             // number of threads after balancing should match expectation
@@ -107,8 +108,8 @@ namespace TaskRipper.Core.Tests.Unit
         [InlineData(20000, 160, 320, 160)]
         public void MinShouldReturnCorrectValues(int iterations, int minThreadCount, int maxThreadCount, int expectedNumberOfThreads)
         {
-            var executionSettings = GetExecutionSettings(iterations, minThreadCount, maxThreadCount, WorkBalancerOptions.MinimizeThreads);
-            var workContract = GetWorkContract(executionSettings, iterations);
+            var executionSettings = GetExecutionSettings(iterations, minThreadCount, maxThreadCount);
+            var workContract = GetWorkContract(executionSettings, WorkBalancerOptions.MinimizeThreads, iterations);
             var actualIterationsByThread = new WorkBalancer().Balance(workContract);
 
             var actualNumberOfThreads = actualIterationsByThread.Count;
@@ -149,10 +150,10 @@ namespace TaskRipper.Core.Tests.Unit
         [InlineData(200, 160, 320, 200)]
         [InlineData(2000, 160, 320, 320)]
         [InlineData(20000, 160, 320, 320)]
-        public void HighShouldReturnCorrectValues(int iterations, int minThreadCount, int maxThreadCount, int expectedNumberOfThreads)
+        public void MaximizeShouldReturnCorrectValues(int iterations, int minThreadCount, int maxThreadCount, int expectedNumberOfThreads)
         {
-            var executionSettings = GetExecutionSettings(iterations, minThreadCount, maxThreadCount, WorkBalancerOptions.MaximizeThreads);
-            var workContract = GetWorkContract(executionSettings, iterations);
+            var executionSettings = GetExecutionSettings(iterations, minThreadCount, maxThreadCount);
+            var workContract = GetWorkContract(executionSettings, WorkBalancerOptions.MaximizeThreads, iterations);
             var actualIterationsByThread = new WorkBalancer().Balance(workContract);
 
             var actualNumberOfThreads = actualIterationsByThread.Count;
@@ -165,14 +166,19 @@ namespace TaskRipper.Core.Tests.Unit
 
         // Private Setup Methods
 
-        private static IExecutionSettings GetExecutionSettings(int iterations, int minThreadCount, int maxThreadCount, WorkBalancerOptions workBalancerOptions)
+        private static IExecutionSettings GetExecutionSettings(int iterations, int minThreadCount, int maxThreadCount)
         {
-            return ExecutionSettings.Create(LocalExecutionEnvironment.Default, new Range(minThreadCount, maxThreadCount), new Range(1, ++iterations), workBalancerOptions);
+            return ExecutionSettings.Create(LocalExecutionEnvironment.Default, new Range(minThreadCount, maxThreadCount), new Range(1, ++iterations));
         }
 
-        private IWorkContract GetWorkContract(IExecutionSettings executionSettings, int iterations)
+        private IWorkContract GetWorkContract(IExecutionSettings executionSettings, WorkBalancerOptions options, int iterations)
         {
-            return WorkContract.Create(executionSettings, iterations);
+            return new WorkContractBuilder()
+                .WithExecutionSettings(executionSettings)
+                .WithWorkBalancingOptions(options)
+                .WithCancellationToken(CancellationToken.None)
+                .WithIterations(iterations)
+                .Build();
         }
     }
 }
