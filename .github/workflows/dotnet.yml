@@ -3,7 +3,7 @@ env:
   # The name of the project to build and package
   PROJECT_NAME: TaskRipper.Core
   # The path to the project file to build and package
-  PROJECT_FILE: TaskRipper.Core/ TaskRipper.Core.csproj
+  PROJECT_FILE: TaskRipper.Core/TaskRipper.Core.csproj
   # The dotnet version to build and publish with
   DOTNET_VERSION: 8.0.x
   # The build configuration to use (e.g. Debug or Release)
