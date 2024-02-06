@@ -9,42 +9,46 @@ using Xunit.Abstractions;
 namespace TaskRipper.Core.Tests.Unit
 {
     
-    public class WorkContractBuilderTests
+    public class WorkContractBuilderTests(ITestOutputHelper testOutputHelper)
     {
-        [Fact]
-        public void WorkContractBuilderBuildsContractCorrectly()
+        [Theory]
+        [InlineData(1, 5, 1)]
+        [InlineData(10, 5, 10)]
+        [InlineData(32, 5, 32)]
+        [InlineData(100, 5, 32)]
+        [InlineData(50000, 5, 32)]
+        [InlineData(100000, 5, 32)]
+        [InlineData(1000000, 5, 32)]
+        [InlineData(2147483646, 5, 32)]
+        public async Task WorkContractBuilderBuildsContractCorrectlyAndExecutes(int iterations, int request, int expectedNumOfThreadsUsed)
         {
             // Arrange
-            var iterations = 10;
-            var request = 5; // Positive number to pass the conditional check
             var cancellationToken = CancellationToken.None;
             var workOptions = WorkBalancerOptions.Optimize;
+            var exSettings = ExecutionSettings.Create(LocalExecutionEnvironment.Default, new Range(1, 32), new Range(1, iterations + 1));
             var contract = new WorkContractBuilder()
                 .WithIterations(iterations)
                 .WithCancellationToken(cancellationToken)
                 .WithWorkBalancingOptions(workOptions)
-                .UseDefaultExecutionSettings()
+                .WithExecutionSettings(exSettings)
                 .Build();
 
             // Act
 
-            AssertContract(contract, iterations, cancellationToken, ExecutionSettings.Default, workOptions);
+            AssertContract(contract, iterations, cancellationToken, exSettings, workOptions);
 
-            var workBalancer = new WorkBalancer();
-            var workThreads = workBalancer.Balance(contract);
-
-            var result = WorkExecutor.Default.Execute(contract, ActionableString, request);
+            var result = await WorkExecutor.Default.ExecuteAsync(contract, Add, request);
 
             // Assert
 
             result.ContractHonored.Should().BeTrue();
             result.Duration.Should().BeGreaterThan(TimeSpan.FromMicroseconds(1));
             result.ResultsMatrix.Should().NotBeEmpty();
-            result.ThreadsUsed.Should().Be(workThreads.Count);
+            result.ThreadsUsed.Should().Be(expectedNumOfThreadsUsed);
             result.HasCompleted.Should().BeTrue();
             result.OriginalContract.Should().Be(contract);
             
-            var workResult = result as WorkResult<string>;
+            var workResult = result as WorkResult<int>;
 
             workResult.Should().NotBeNull();
 
@@ -54,7 +58,7 @@ namespace TaskRipper.Core.Tests.Unit
             workResult.PartitionCount.Should().Be(result.ResultsMatrix.Count());
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
 
-
+            testOutputHelper.WriteLine($"Duration: {workResult.Duration}");
         }
 
         private void AssertContract(IWorkContract workContract, int iterations, CancellationToken cancellationToken, IExecutionSettings executionSettings, WorkBalancerOptions workBalancerOptions)
@@ -67,7 +71,7 @@ namespace TaskRipper.Core.Tests.Unit
         }
 
         [Fact]
-        public void DelegateBuilder_ShouldThrowException_WhenConditionIsNotMet()
+        public async Task DelegateBuilder_ShouldThrowException_WhenConditionIsNotMet()
         {
             // Arrange
             var iterations = 10;
@@ -79,12 +83,17 @@ namespace TaskRipper.Core.Tests.Unit
                 .Build();
 
             // Act & Assert
-            var result = WorkExecutor.Default.Execute(contract, ActionableString, request);
+            var result = await WorkExecutor.Default.ExecuteAsync(contract, ActionableString, request);
+        }
+
+        private int Add(int request)
+        {
+            return request + 1;
         }
 
         private string ActionableString(int request)
         {
-            return request.ToString();
+            return (request + 1).ToString();
         }
 
         private int ActionableInt(string request)

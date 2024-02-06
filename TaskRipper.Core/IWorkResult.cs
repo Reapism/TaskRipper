@@ -26,11 +26,6 @@
 
     public sealed class WorkResult<TResult> : IWorkResult<TResult>
     {
-        public WorkResult(IWorkContract workContract, int threadsUsed)
-        {
-            OriginalContract = workContract;
-            ThreadsUsed = threadsUsed;
-        }
         /// <inheritdoc/>
         public IWorkContract OriginalContract { get; init; }
 
@@ -43,7 +38,7 @@
         /// <summary>
         /// Inspect this task to see information on the overall task
         /// </summary>
-        protected Task ExecuterTask { get; init; }
+        public Task ExecuterTask { get; init; }
 
         public IEnumerable<IEnumerable<TResult>> ResultsMatrix { get; init; }
         public int PartitionCount => ResultsMatrix.Count();

@@ -1,14 +1,20 @@
-﻿namespace TaskRipper.Core
+﻿using System.Threading;
+
+namespace TaskRipper.Core
 {
     public interface IWorkExecutor
     {
-        Task<TRequest> ExecuteAsync<TRequest,TResult> (IWorkContract contract, TaskRipperDelegate<TRequest, TRequest> del, TRequest request, CancellationToken cancellationToken);
+        IWorkResult<TResult> Execute<TRequest, TResult>(IWorkContract contract, Actionable<TRequest, TResult> actionable, TRequest request);
+        Task<IWorkResult<TResult>> ExecuteAsync<TRequest, TResult> (IWorkContract contract, Actionable<TRequest, TResult> actionable, TRequest request);
     }
 
     public sealed class WorkExecutor : IWorkExecutor
     {
         private readonly IWorkBalancer workBalancer;
         private static IWorkExecutor? _defaultInstance;
+
+        private bool ResultIsTask;
+
         private WorkExecutor(IWorkBalancer workBalancer)
         {
             this.workBalancer = workBalancer;
@@ -22,112 +28,154 @@
             }
         }
 
-        public Task<TRequest> ExecuteAsync<TRequest, TResult>(IWorkContract contract, TaskRipperDelegate<TRequest, TRequest> del, TRequest request, CancellationToken cancellationToken)
+        public IWorkResult<TResult> Execute<TRequest, TResult>(IWorkContract contract, Actionable<TRequest, TResult> actionable, TRequest request)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("Use Async version for now");
         }
 
-        //public async Task<IWorkResult> ExecuteAsync(IWorkContract workContract, CancellationToken cancellationToken)
-        //{
-        //    return await ExecuteAsyncActionInternal(work, cancellationToken);
-        //}
+        public Task<IWorkResult<TResult>> ExecuteAsync<TRequest, TResult>(IWorkContract contract, Actionable<TRequest, TResult> actionable, TRequest request)
+        {
+            return ExecuteAsyncInternal<TRequest, TResult>(contract, actionable, request);
+        }
 
-        //private async Task<IWorkResult> ExecuteAsyncActionInternal(WorkAction work, CancellationToken cancellationToken)
-        //{
-        //    var startDate = DateTime.Now;
+        private bool IsResultATaskType<TResult>()
+        {
+            var resultType = typeof(TResult);
+            var isTask = resultType == typeof(Task);
+            var isGenericTask = resultType.IsGenericType && resultType.GetGenericTypeDefinition() == typeof(Task<>);
 
-        //    var iterationsByThread = workBalancer.Balance(work.WorkContract);
-        //    var tasks = TaskRetriever.GetWrappedWorkActionTasks(work, iterationsByThread, cancellationToken);
+            return isTask || isGenericTask;
+        }
 
-        //    StartTasks(tasks);
-        //    await WaitForAllTasks(tasks);
-        //    HandleIncompleteTasks(tasks);
-        //    var endDate = DateTime.Now;
+        private async Task<IWorkResult<TResult>> ExecuteInternal<TRequest, TResult>(IWorkContract contract, Actionable<TRequest, TResult> actionable, TRequest request)
+        {
+            ResultIsTask = IsResultATaskType<TResult>();
 
-        //    return await Task.FromResult(new WorkResult(work.WorkContract, tasks.Count()));
-        //}
+            var startDate = DateTime.Now;
 
-        //private async Task<IWorkResult> ExecuteAsyncActionInternal<T>(WorkAction<T> work, CancellationToken cancellationToken)
-        //{
-        //    var startDate = DateTime.Now;
+            var iterationsByThread = workBalancer.Balance(contract);
+            var tasks = await WrapTasks(contract, actionable, request, iterationsByThread);
 
-        //    var iterationsByThread = workBalancer.Balance(work.WorkContract);
-        //    var tasks = TaskRetriever.GetWrappedWorkActionTasks(work, iterationsByThread, cancellationToken);
+            StartTasks(tasks);
+            var resultMatrix = await WaitForTasks(tasks);
+            HandleIncompleteTasks(tasks);
 
-        //    StartTasks(tasks);
-        //    await WaitForAllTasks(tasks);
-        //    HandleIncompleteTasks(tasks);
-        //    var endDate = DateTime.Now;
+            var endDate = DateTime.Now;
+            var workResult = new WorkResult<TResult>()
+            {
+                Duration = endDate - startDate,
+                OriginalContract = contract,
+                ThreadsUsed = iterationsByThread.Count,
+                ResultsMatrix = resultMatrix
+            };
 
-        //    return await Task.FromResult(new WorkResult(work.WorkContract, tasks.Count()));
-        //}
+            return await Task.FromResult(workResult);
+        }
 
-        //private async Task<IWorkResult<TResult>> ExecuteAsyncFuncInternal<TResult>(WorkFunction<TResult> work, CancellationToken cancellationToken)
-        //{
-        //    var startDate = DateTime.Now;
+        private async Task<IWorkResult<TResult>> ExecuteAsyncInternal<TRequest, TResult>(IWorkContract contract, Actionable<TRequest, TResult> actionable, TRequest request)
+        {
+            var startDate = DateTime.Now;
 
-        //    var iterationsByThread = workBalancer.Balance(work.WorkContract);
-        //    var tasks = TaskRetriever.GetWrappedWorkActionTasks(work, iterationsByThread, cancellationToken);
+            var iterationsByThread = workBalancer.Balance(contract);
+            var tasks = await WrapTasks(contract, actionable, request, iterationsByThread);
 
-        //    StartTasks(tasks);
-        //    var results = await WaitForAllTasks(tasks);
-        //    HandleIncompleteTasks(tasks);
-        //    var endDate = DateTime.Now;
+            StartTasks(tasks);
 
-        //    return await Task.FromResult(new WorkResult<TResult>(work.WorkContract, tasks.Count(), results));
-        //}
+            var executerTask = WaitForTasks(tasks);
+            var resultMatrix = await executerTask;
 
-        //private async Task<IWorkResult<TResult>> ExecuteAsyncFuncInternal<T, TResult>(WorkFunction<T, TResult> work, CancellationToken cancellationToken)
-        //{
-        //    var startDate = DateTime.Now;
+            HandleIncompleteTasks(tasks);
+            var endDate = DateTime.Now;
 
-        //    var iterationsByThread = workBalancer.Balance(work.WorkContract);
-        //    var tasks = TaskRetriever.GetWrappedWorkActionTasks(work, iterationsByThread, cancellationToken);
+            var workResult = new WorkResult<TResult>()
+            {
+                Duration = endDate - startDate,
+                OriginalContract = contract,
+                ThreadsUsed = iterationsByThread.Count,
+                ResultsMatrix = resultMatrix,
+                ExecuterTask = executerTask
+            };
 
-        //    StartTasks(tasks);
-        //    var results = await WaitForAllTasks(tasks);
+            return await Task.FromResult(workResult);
+        }  
 
-        //    HandleIncompleteTasks(tasks);
+        private static void HandleIncompleteTasks(IEnumerable<Task> tasks)
+        {
+            if (tasks.Any(e => e.IsCanceled || !e.IsCompletedSuccessfully || e.Exception is not null))
+            {
+                // At this point, the task was cancelled either due to an exception
+                // TODO handle each case differently, for now, it will just fail
 
-        //    var endDate = DateTime.Now;
+                var exceptionalTasks = tasks.Where(e => e.Exception is not null).ToArray();
+                var cancelledTasks = tasks.Where(e => e.IsCanceled).ToArray();
+                var incompleteTasks = tasks.Where(e => !e.IsCompletedSuccessfully).ToArray();
+            }
+        }
 
-        //    return await Task.FromResult(new WorkResult<TResult>(work.WorkContract, tasks.Count(), results));
-        //}
+        private async Task<Queue<Task<IEnumerable<TResult>>>> WrapTasks<TRequest, TResult>(IWorkContract contract, Actionable<TRequest, TResult> actionable, TRequest request, IDictionary<int, int> iterationsByThread)
+        {
+            return await WrapTasksInternal(contract, actionable, request, iterationsByThread);
+        }
 
-        //private static void HandleIncompleteTasks(IEnumerable<Task> tasks)
-        //{
-        //    if (tasks.Any(e => e.IsCanceled || !e.IsCompletedSuccessfully || e.Exception is not null))
-        //    {
-        //        // At this point, the task was cancelled either due to an exception
-        //        // TODO handle each case differently, for now, it will just fail
 
-        //        var exceptionalTasks = tasks.Where(e => e.Exception is not null).ToArray();
-        //        var cancelledTasks = tasks.Where(e => e.IsCanceled).ToArray();
-        //        var incompleteTasks = tasks.Where(e => !e.IsCompletedSuccessfully).ToArray();
-        //    }
-        //}
+        private async Task<Queue<Task<IEnumerable<TResult>>>> WrapTasksInternal<TRequest, TResult>(IWorkContract contract, Actionable<TRequest, TResult> actionable, TRequest request, IDictionary<int, int> iterationsByThread)
+        {
+            var queue = new Queue<Task<IEnumerable<TResult>>>();
 
-        //private void StartTasks(IEnumerable<Task> tasks)
-        //{
-        //    foreach (var task in tasks)
-        //        task.Start();
-        //}
+            for(var i = 0; i < iterationsByThread.Count; i++)
+            {
+                var iterationsForThisThread = iterationsByThread[i];
+                if (contract.CancellationToken == CancellationToken.None)
+                {
+                    queue.Enqueue(GetTaskWithoutCancellationToken(actionable, request, iterationsForThisThread));
+                    continue;
+                }
 
-        //private void StartTasks<TResult>(IEnumerable<Task<IDictionary<int, IterationResult<TResult>>>> tasks)
-        //{
-        //    foreach (var task in tasks)
-        //        task.Start();
-        //}
+                queue.Enqueue(GetTaskWithCancellationToken(actionable, request, iterationsForThisThread, contract.CancellationToken));
+            }
 
-        //private async Task WaitForAllTasks(IEnumerable<Task> tasks)
-        //{
-        //    await Task.WhenAll(tasks);
-        //}
+            return queue;
+        }  
 
-        //private async Task<IEnumerable<IEnumerable<IterationResult<TResult>>>> WaitForAllTasks<TResult>(IEnumerable<Task<IEnumerable<IterationResult<TResult>>>> tasks)
-        //{
-        //    var results = await Task.WhenAll(tasks);
-        //    return results;
-        //}
+        private Task<IEnumerable<TResult>> GetTaskWithCancellationToken<TRequest, TResult>(Actionable<TRequest, TResult> actionable, TRequest request, int iterationsForThisThread, CancellationToken cancellationToken)
+        {
+            return new Task<IEnumerable<TResult>>((r) =>
+            {
+                var resultQueue = new Queue<TResult>(iterationsForThisThread);
+                for(int i = 0; i < iterationsForThisThread; i++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var result = actionable(request);
+                    resultQueue.Enqueue(result);
+                }
+                return resultQueue;
+            }, request, TaskCreationOptions.LongRunning);
+        }
+
+        private Task<IEnumerable<TResult>> GetTaskWithoutCancellationToken<TRequest,TResult>(Actionable<TRequest, TResult> actionable, TRequest request, int iterationsForThisThread)
+        {
+            return new Task<IEnumerable<TResult>>((r) =>
+            {
+                var resultQueue = new Queue<TResult>(iterationsForThisThread);
+                for (int i = 0; i < iterationsForThisThread; i++)
+                {
+                    var result = actionable(request);
+                    resultQueue.Enqueue(result);
+                }
+                return resultQueue;
+            }, request, TaskCreationOptions.LongRunning);
+        }
+
+        private void StartTasks<TResult>(Queue<Task<IEnumerable<TResult>>> tasks)
+        {
+            foreach (var task in tasks)
+                task.Start();
+        }
+
+        private async Task<IEnumerable<TResult>[]> WaitForTasks<TResult>(Queue<Task<IEnumerable<TResult>>> tasks)
+        {
+            var results = await Task.WhenAll(tasks);
+            return results;
+        }
     }
 }
