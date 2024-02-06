@@ -1,0 +1,58 @@
+name: .NET CI/CD pipeline
+env:
+  # The name of the project to build and package
+  PROJECT_NAME: TaskRipper.Core
+  # The path to the project file to build and package
+  PROJECT_FILE: TaskRipper.Core/ TaskRipper.Core.csproj
+  # The dotnet version to build and publish with
+  DOTNET_VERSION: 8.0.x
+  # The build configuration to use (e.g. Debug or Release)
+  BUILD_CONFIGURATION: Release
+  # The directory to publish the package to
+  PACKAGE_DIRECTORY: nuget/
+  # The URL of the NuGet repository to publish the package to
+  NUGET_REPOSITORY_URL: https://api.nuget.org/v3/index.json
+  NUGET_KEY: ${{ secrets.TASK_RIPPER_API_KEY }}
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.PROJECT_FILE }}
+    - name: Get package version from project file
+      id: package-version
+      run: echo "::set-output name=version::$(dotnet build ${env.PROJECT_FILE} /property:VersionPrefix=1.0 /v:q /nologo | grep -m1 'Version:' | awk '{print $2}')"
+    - name: Check if version already exists on NuGet
+      id: check-version
+      run: |
+        version=$(echo "${{ steps.package-version.outputs.version }}" | cut -d'-' -f1)
+        output=$(dotnet nuget list -s "${{ env.NUGET_REPOSITORY_URL }}" "${{ env.PROJECT_NAME }}" --version "${version}" | grep "${version}")
+        if [ -n "${output}" ]; then
+          echo "Package version ${version} already exists on NuGet. Skipping publish step."
+          echo "::set-output name=version-exists::true"
+        else
+          echo "Package version ${version} does not exist on NuGet. Proceeding with publish step."
+          echo "::set-output name=version-exists::false"
+        fi
+    - name: Build
+      run: dotnet build ${{ env.PROJECT_FILE }} -c ${{ env.BUILD_CONFIGURATION }}
+    - name: Test
+      run: dotnet test ${{ env.PROJECT_FILE }} -c ${{ env.BUILD_CONFIGURATION }} --no-build
+    - name: Pack
+      run: dotnet pack ${{ env.PROJECT_FILE }} -c ${{ env.BUILD_CONFIGURATION }} --output ${{ env.PACKAGE_DIRECTORY }}
+    - name: Push package to NuGet
+      env: 
+        nuget: ${{ env.PACKAGE_DIRECTORY }}*.nupkg
+      run: |
+        echo "The file path is $nuget"
+        dotnet nuget push $nuget --api-key ${{ env.NUGET_KEY }} --source "${{ env.NUGET_REPOSITORY_URL }}"
