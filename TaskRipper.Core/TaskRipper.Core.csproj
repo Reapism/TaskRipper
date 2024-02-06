@@ -4,40 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Description>
-		A performant open source library targeted for running N iterations of a delegate in parallel without having
-		to configure or understand too much about multithreading. The library encapsulates the ability to run many 
-		delegates N times, and evenly distribute the work given the number of threads. Most models are interfaces, 
-		and therefore can be replaced with your own implementations such as how the work is balanced per thread, 
-		and how the executor executes and records information about the execution. The default settings/instances 
-		provided in the library should cover most use cases, however, I've designed the whole system to work mostly
-		on interfaces so that you can modify the behavior of the pipeline as you see fit.
-
-		The library comes with default implementations of the WorkExecutor, which is responsible for executing the work,
-		given a work contract. Also, the most performant way I can think of writing the balancing of each thread without,
-		inspecting the silicone and each core.
-		
-		- Al beit, the new intel processors have a newish technology of distinguishing different cores via performance and efficiency cores.
-		Support for distinguishing the different types of cores in the CPU will be considered given actual needed support for the balancer 
-		to understand these things and if its requested enough. If an obvious deficiency is detected in the performance of the library 
-		for not distinguishing between performance/efficiency cores on a CPU, then this will be prioritized in the future.
-		
-		- At the time of writing this, the experienment of running the TaskRipper exclusively on performance cores vs 
-		efficiency cores and the overall performance of them on the operating system alone has not been measured at this time.
-
-
-		TODO
-		- Create a WorkExecutor action/function delegate overload that accepts more than one action/function
-		- - This overload would be like this 
-		- - ...WorkExecutor.Execute(workContract, functionToIterateNTimes, functionParameterMutator, cancellationToken)
-		- - This may or may not be possible with just using a single func, but if you want to organize your code, you can 
-		have one function to iterate, and another function that is responsible for mutating the state of the other parameter variables.
-		
-		It is best depend on this package via NuGet to get the latest and greatest updates, and not be subject to maintaining a copied version in the repository in which you are working.
-		
-		Command line usage to run the benchmarks on the executing machine.
-		`dotnet run -c Release -p TaskRipper.Core.Benchmarks`
-	</Description>
+    <Description>A simple, easy-to-use lightweight, no-dependency library for executing an `Actionable&lt;TRequest, TResult&gt;` delegate N times.
+The library provides a way to balance the number of iterations requested by delegating a specific amount of iterations per thread on your machine supporting cancellation tokens per iteration.</Description>
     <PackageProjectUrl>https://github.com/Reapism/TaskRipper</PackageProjectUrl>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -46,14 +14,8 @@
     <PackageTags>task, multithreading, library, multi threaded performance</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Version>1.1.0</Version>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="..\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Interfaces\" />
@@ -62,6 +24,13 @@
     <Folder Include="Management\" />
     <Folder Include="Context\" />
     <Folder Include="Extensions\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
